@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/symbol_2.png-60595fdf08366b16fb710073a453d2d6.stex"
+path="res://.import/symbol_0.png-e4068553a6b9466957214cbd419c2f64.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://symbol_2.png"
-dest_files=[ "res://.import/symbol_2.png-60595fdf08366b16fb710073a453d2d6.stex" ]
+source_file="res://cards/symbols/symbol_0.png"
+dest_files=[ "res://.import/symbol_0.png-e4068553a6b9466957214cbd419c2f64.stex" ]
 
 [params]
 
