@@ -15,8 +15,8 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Card4Real"
-run/main_scene="res://Table.tscn"
+config/name="Solitomata"
+run/main_scene="res://Menu.tscn"
 config/icon="res://icon.png"
 
 [debug]
@@ -25,9 +25,13 @@ gdscript/warnings/unused_variable=false
 
 [display]
 
-window/size/width=1280
-window/size/height=768
-window/stretch/shrink=4.0
+window/size/width=144
+window/size/height=256
+window/size/test_width=288
+window/size/test_height=512
+window/handheld/orientation="portrait"
+window/stretch/mode="viewport"
+window/stretch/aspect="keep_height"
 
 [rendering]
 
@@ -35,3 +39,4 @@ quality/2d/use_pixel_snap=true
 quality/filters/use_nearest_mipmap_filter=true
 environment/default_clear_color=Color( 0.301961, 0.301961, 0.301961, 1 )
 environment/default_environment="res://default_env.tres"
+quality/dynamic_fonts/use_oversampling=false

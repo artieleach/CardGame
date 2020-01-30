@@ -1,193 +1,162 @@
 extends Area2D
 
-signal clicked
+signal picked
+signal dropped
 signal update_board_pos
-signal update_my_z
-
-signal create_neighbor
+signal create_card
 
 var held = false
+var floating = false
+var fast_mode = false
+# card data
+export(int) var symbol			  	# 0 is spiral, 1 is circle, 2 is triangle, 3 is factory
+export(int) var value  				# 1-6, used in game logic
+export(Vector2) var table_pos  		#  position on the board
+export(bool) var survive = true  	#  used in game logic to decide who lives
 
-export(int) var sym_num
-export(int) var val
-export(Vector2) var grid_pos
-export(bool) var sleeping
-
-var survive = true
-var board_state = null
-var neighbors = []
+#local data
 var last_pos = null
+var card_size = Vector2(32, 48-4)
 
-var shadow_position = Vector2(0, 0)
-
-var possible_neighbors = [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
+#helper data for coloring purposes
 
 var symbol_colors = [Color(0.0, 0.0, 0.533), Color(0.0, .235, 0.0), Color(.533, .0, .0), Color(.251, .251, .251)]
 
 func _ready():
-	last_pos = grid_pos
-	emit_signal("update_my_z", self, grid_pos.y)
-	$card.animation = str(randi() % 4)
+	last_pos = table_pos
+	$card.animation = str(randi() % 5)  # there are currently five card textures
 	update_card()
-	sleeping = true
 
 func _process(delta):
-	if sleeping:
-		modulate.a = 0.5
-	else:
-		modulate.a = 1
-	if held:
+	if held or floating:
 		z_index = 64
-		#emit_signal("update_my_z", self, 64)
+
+func ps():  # Print String
+	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func _input_event(viewport, event, shape_idx):
 	if event is InputEventMouseButton:
-		if event.button_index == BUTTON_LEFT and event.pressed:
-			emit_signal('clicked', self)
-			held = true
+		if event.button_index == BUTTON_LEFT:
+			if event.pressed:  # when the mouse is pressed, pickup
+				emit_signal('picked', self)
+				held = true
+			else:  # when released, drop
+				emit_signal('dropped', self)
+				drop()
 		elif event.button_index == BUTTON_RIGHT and event.pressed:
-			if sym_num < 3:
-				self.sym_num += 1
+			if symbol < 3:
+				symbol += 1
 			else:
-				sym_num = 0
-		if event.button_index == BUTTON_WHEEL_UP and event.pressed:
-			if self.val < 6:
-				self.val += 1
+				symbol = 0		
+		elif event.button_index == BUTTON_WHEEL_UP and event.pressed:
+			if value < 6:
+				value += 1
 			else:
-				self.val = 1
+				value = 1
 		elif event.button_index == BUTTON_WHEEL_DOWN and event.pressed:
-			if self.val > 1:
-				self.val -= 1
+			if value > 1:
+				value -= 1
 			else:
-				self.val = 6
+				value = 6
 		update_card() 
 
 func pickup():
 	if not held:
-		last_pos = grid_pos
+		last_pos = table_pos
 		held = true
 
 func drop():
 	$ThumpParticles.emitting = true
-	update_card()
 	held = false
+	update_card()
 
 func update_card():
-	sleeping = false
-	$symbol.animation = str(sym_num)
-	$value.animation = str(val)
-	$value.modulate = symbol_colors[sym_num]
-	z_index = grid_pos.y
-	emit_signal("update_board_pos", self, grid_pos)
-
-func take_turn(card_positions):
-	# inital set up, finding neighbors
-	board_state = card_positions
-	neighbors = []
-	print('self:', self)
-	for poss_n in possible_neighbors:
-		if 0 <= grid_pos.x + poss_n.x and grid_pos.x + poss_n.x < 5 and 0 <= grid_pos.y + poss_n.y and grid_pos.y + poss_n.y < 5:
-			neighbors.append([Vector2(grid_pos.x + poss_n.x, grid_pos.y + poss_n.y), board_state[grid_pos.x + poss_n.x][grid_pos.y + poss_n.y]])
-	print('neighbors: ',neighbors)
-	#do game logic 
-	sleeping = false
-	if not sleeping:
-		if sym_num == 0:
-			var has_switched = false
-			var has_grown = false
-			for neighbor in neighbors:
-				if neighbor[1]:
-					if neighbor[1].sym_num in [1, 2] and not has_switched:
-						switch_pos(neighbor[1], true, null)
-						var old_grid_pos = grid_pos
-						grid_pos = neighbor[1].grid_pos
-						neighbor[1].grid_pos = old_grid_pos
-						if neighbor[1].sym_num == 1:
-							neighbor[1].sym_num = 2
-						elif neighbor[1].sym_num == 2:
-							neighbor[1].sym_num = 1
-						neighbor[1].update_card()
-						neighbor[1].z_index = -100
-						neighbor[1].sleeping = true
-						has_switched = true
-			if not has_switched:
-				for neighbor in neighbors:
-					if not neighbor[1] and not has_grown:
-						emit_signal("create_neighbor", 0, 1, neighbor[0])
-						has_grown = true
-			if not has_grown and not has_switched:
-				sym_num = 3
-		elif sym_num == 1:
-			var has_grown = false
-			for neighbor in neighbors:
-				if neighbor[1]:
-					if neighbor[1].sym_num == 1:
-							val += 1
-							print('here', neighbor)
-				elif not has_grown:
-					emit_signal("create_neighbor", 1, 1, neighbor[0])
-					has_grown = true
-		elif sym_num == 2:
-			survive = false
-			for neighbor in neighbors:
-				if neighbor[1]:
-					if val > neighbor[1].val:
-						survive = true
-						neighbor[1].sym_num = 2
-						neighbor[1].val = val - neighbor[1].val
-						neighbor[1].update_card()
-		elif sym_num == 3:
-			survive = false
-			var met_needs = false
-			var expanded = false
-			var living_neighbors = []
-			for neighbor in neighbors:
-				if neighbor[1]:
-					if neighbor[1].sym_num == 1 and not expanded:
-						met_needs = true
-						expanded = true
-						neighbor[1].sym_num = 3
-						neighbor[1].update_card()
-						neighbor[1].sleeping = true
-					living_neighbors.append(neighbor)
-			if not living_neighbors or len(living_neighbors) != len(neighbors):
-				met_needs = true
-			if not expanded:
-				for item in living_neighbors:
-					if item[1].val != living_neighbors[0][1].val:
-						met_needs = true
-				if not expanded:
-					if living_neighbors:
-						met_needs = true
-						living_neighbors[0][1].survive = false
-			survive = met_needs
-		update_card()
-
-func switch_pos(other_card, is_active, new_pos):
-	#other card is the card this card is switching with, is_active determines who is moving and who is being moved
-	var tween = $Tween
-	var target_pos = other_card.position
-	var my_pos = position
-	if is_active:
-		z_index = 64
-		tween.interpolate_property(self, "position", position, Vector2(position.x, position.y - 8), 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
-		tween.start()
-		yield(tween, "tween_completed")
-		tween.interpolate_property(self, "position", position, Vector2(target_pos.x, target_pos.y - 8), 0.4, Tween.TRANS_EXPO, Tween.EASE_IN_OUT)
-		tween.start()
-		yield(tween, "tween_completed")
-		other_card.switch_pos(self, false, my_pos)
-		tween.interpolate_property(self, "position", position, Vector2(target_pos.x, target_pos.y), 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
-		tween.start()
-		drop()
+	value = clamp(value, 0, 6)
+	$symbol.animation = str(symbol)
+	$card_val/value_0.animation = str(value)
+	$card_val/value_1.animation = str(value)
+	$card_val.modulate = symbol_colors[symbol]
+	z_index = table_pos.y
+	if value == 0:
+		survive = false
+	if survive:
+		emit_signal("update_board_pos", self, self)
 	else:
-		tween.interpolate_property(self, "position", position, new_pos, 0.2, Tween.TRANS_EXPO, Tween.EASE_IN_OUT)
-		tween.start()
-		update_card()
-
-func _on_end_turn():
-	if not survive:
-		emit_signal("update_board_pos", [], grid_pos)
+		emit_signal('update_board_pos', [], self)
 		queue_free()
-	else:
-		emit_signal("update_board_pos", self, grid_pos)
+
+func take_turn(neighbors, living_neighbors):
+	if symbol == 0:
+		var has_switched = false
+		for neighbor in living_neighbors:
+			if neighbor[1].symbol in [1, 2] and not has_switched:
+				switch_pos(neighbor[1])
+				has_switched = true
+				break
+		if not has_switched:
+			for neighbor in neighbors:
+				if not neighbor[1]:
+					emit_signal("create_card", 0, 1, neighbor[0])
+					break
+	elif symbol == 1:  # gains 1 for each circle neighbor, generates one child
+		var has_grown = false
+		for neighbor in neighbors:
+			if neighbor[1]:
+				if neighbor[1].symbol == 1:
+					value += 1
+			elif not has_grown:
+				emit_signal('create_card', 1, 1, neighbor[0])
+				has_grown = true
+	elif symbol == 2: 
+		survive = false
+		for neighbor in living_neighbors:
+			if not survive:
+				# 1
+				if value > neighbor[1].value and neighbor[1].symbol in [0, 1]:
+					survive = true
+					neighbor[1].symbol = 2
+					neighbor[1].value = value - neighbor[1].value
+					neighbor[1].update_card()
+	elif symbol == 3:
+		if len(neighbors) == len(living_neighbors):
+			survive = false
+			for neighbor in living_neighbors:
+				if neighbor[1].symbol != living_neighbors[0][1].symbol:
+					survive = true
+		if survive:
+			for neighbor in living_neighbors:
+				if neighbor[1].symbol == 1:
+					neighbor[1].symbol = 3
+					neighbor[1].update_card()
+				neighbor[1].value -= 1
+	update_card()
+
+
+func deal(start):
+	position = start
+	$Timer.wait_time = 0.1
+	$Timer.start()
+	yield($Timer, "timeout")
+	$Tween.interpolate_property(self, "position", start, table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
+	$Tween.start()
+
+func switch_pos(other_card):  # im avoiding using the actual position of the card as much as possible, thus all of the * card_size
+	var new_pos = other_card.table_pos * card_size
+	floating = true
+	var old_table_pos = table_pos
+	table_pos = other_card.table_pos
+	other_card.table_pos = old_table_pos
+	other_card.symbol = [0, 2, 1, 3][other_card.symbol]  # why? i like one liners.
+	$Tween.interpolate_property(self, "position", old_table_pos * card_size, Vector2(old_table_pos.x * card_size.x, old_table_pos.y * card_size.y - 8), 0.1, Tween.TRANS_EXPO, Tween.EASE_OUT)
+	$Tween.start()
+	$Tween.interpolate_property(self, "position", Vector2(old_table_pos.x * card_size.x, old_table_pos.y * card_size.y - 8), Vector2(new_pos.x, new_pos.y - 8), 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
+	$Tween.start()
+	$Tween.interpolate_property(self, "position", Vector2(new_pos.x, new_pos.y - 8), Vector2(new_pos.x, new_pos.y), 0.1, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.4)
+	$Tween.start()
+	$Tween.interpolate_property(other_card, "position", other_card.table_pos * card_size, old_table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.4)
+	$Tween.start()
+	other_card.update_card()
+	yield($Tween, "tween_completed")
+	floating = false
+	update_card()
+	

@@ -1,0 +1,103 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://Table.tscn" type="PackedScene" id=1]
+[ext_resource path="res://cards/buttons/Button_Default.png" type="Texture" id=2]
+[ext_resource path="res://cards/buttons/Button_Pressed.png" type="Texture" id=3]
+[ext_resource path="res://cards/buttons/Turner_Default.png" type="Texture" id=4]
+[ext_resource path="res://cards/buttons/Turner_Pressed.png" type="Texture" id=5]
+[ext_resource path="res://cards/backs/big_0.png" type="Texture" id=6]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.721569, 0.701961, 0.670588, 1 )
+corner_detail = 1
+
+[sub_resource type="InputEventAction" id=4]
+action = "ui_accept"
+
+[sub_resource type="ShortCut" id=3]
+shortcut = SubResource( 4 )
+
+[node name="CanvasLayer" type="CanvasLayer"]
+
+[node name="Panel" type="Panel" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+custom_styles/panel = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+custom_constants/margin_right = 4
+custom_constants/margin_top = 4
+custom_constants/margin_left = 4
+custom_constants/margin_bottom = 4
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CenterContainer" type="CenterContainer" parent="Panel/MarginContainer"]
+margin_left = 4.0
+margin_top = 4.0
+margin_right = 140.0
+margin_bottom = 252.0
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer/CenterContainer"]
+margin_left = 4.0
+margin_top = 6.0
+margin_right = 132.0
+margin_bottom = 242.0
+mouse_filter = 2
+size_flags_vertical = 3
+
+[node name="Table" parent="Panel/MarginContainer/CenterContainer/VBoxContainer" instance=ExtResource( 1 )]
+margin_right = 128.0
+margin_bottom = 184.0
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer"]
+margin_top = 188.0
+margin_right = 128.0
+margin_bottom = 236.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer"]
+margin_right = 128.0
+margin_bottom = 48.0
+mouse_filter = 2
+
+[node name="Stepper" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+margin_right = 24.0
+margin_bottom = 48.0
+focus_mode = 0
+shortcut_in_tooltip = false
+enabled_focus_mode = 0
+shortcut = SubResource( 3 )
+texture_normal = ExtResource( 2 )
+texture_pressed = ExtResource( 3 )
+stretch_mode = 2
+
+[node name="Turner" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+margin_left = 28.0
+margin_right = 52.0
+margin_bottom = 48.0
+focus_mode = 0
+shortcut_in_tooltip = false
+enabled_focus_mode = 0
+texture_normal = ExtResource( 4 )
+texture_pressed = ExtResource( 5 )
+stretch_mode = 2
+
+[node name="deck" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+margin_left = 56.0
+margin_right = 88.0
+margin_bottom = 48.0
+rect_min_size = Vector2( 2, 0 )
+shortcut_in_tooltip = false
+texture_normal = ExtResource( 6 )
+[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/Stepper" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_Stepper_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/Turner" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_Turner_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/deck" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_deck_pressed"]
