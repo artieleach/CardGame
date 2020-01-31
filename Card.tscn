@@ -22,9 +22,6 @@
 [sub_resource type="ShaderMaterial" id=10]
 shader = ExtResource( 1 )
 
-[sub_resource type="RectangleShape2D" id=7]
-extents = Vector2( 16, 22 )
-
 [sub_resource type="Curve" id=2]
 _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
 
@@ -34,8 +31,9 @@ curve = SubResource( 2 )
 
 [sub_resource type="ParticlesMaterial" id=4]
 emission_shape = 2
-emission_box_extents = Vector3( 4, 8, 1 )
+emission_box_extents = Vector3( 16, 24, 1 )
 flag_disable_z = true
+direction = Vector3( 0, 0, 0 )
 spread = 180.0
 gravity = Vector3( 0, 0, 0 )
 initial_velocity = 90.0
@@ -46,6 +44,9 @@ orbit_velocity_random = 0.0
 damping = 100.0
 damping_random = 0.24
 scale_curve = SubResource( 3 )
+
+[sub_resource type="RectangleShape2D" id=7]
+extents = Vector2( 16, 22 )
 
 [sub_resource type="SpriteFrames" id=5]
 animations = [ {
@@ -137,21 +138,22 @@ z_as_relative = false
 gravity_vec = Vector2( 0, 0 )
 script = ExtResource( 2 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 16, 22 )
-shape = SubResource( 7 )
-
 [node name="ThumpParticles" type="Particles2D" parent="."]
 use_parent_material = true
-position = Vector2( 12, 18 )
+position = Vector2( 16, 22 )
 z_as_relative = false
 emitting = false
 amount = 30
 lifetime = 0.25
 one_shot = true
 explosiveness = 1.0
+fract_delta = false
 process_material = SubResource( 4 )
 texture = ExtResource( 3 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 16, 22 )
+shape = SubResource( 7 )
 
 [node name="card" type="AnimatedSprite" parent="."]
 frames = SubResource( 5 )
@@ -162,8 +164,6 @@ offset = Vector2( 16, 24 )
 frames = SubResource( 6 )
 animation = "3"
 offset = Vector2( 16, 22 )
-
-[node name="Tween" type="Tween" parent="."]
 
 [node name="card_val" type="Node2D" parent="."]
 

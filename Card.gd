@@ -4,6 +4,7 @@ signal picked
 signal dropped
 signal update_board_pos
 signal create_card
+signal switch_pos
 
 var held = false
 var floating = false
@@ -72,11 +73,6 @@ func drop():
 
 func update_card():
 	value = clamp(value, 0, 6)
-	$symbol.animation = str(symbol)
-	$card_val/value_0.animation = str(value)
-	$card_val/value_1.animation = str(value)
-	$card_val.modulate = symbol_colors[symbol]
-	z_index = table_pos.y
 	if value == 0:
 		survive = false
 	if survive:
@@ -84,13 +80,19 @@ func update_card():
 	else:
 		emit_signal('update_board_pos', [], self)
 		queue_free()
+	value = clamp(value, 1, 6)
+	$symbol.animation = str(symbol)
+	$card_val/value_0.animation = str(value)
+	$card_val/value_1.animation = str(value)
+	$card_val.modulate = symbol_colors[symbol]
+	z_index = table_pos.y
 
 func take_turn(neighbors, living_neighbors):
 	if symbol == 0:
 		var has_switched = false
 		for neighbor in living_neighbors:
 			if neighbor[1].symbol in [1, 2] and not has_switched:
-				switch_pos(neighbor[1])
+				emit_signal("switch_pos", self, neighbor[1])
 				has_switched = true
 				break
 		if not has_switched:
@@ -130,33 +132,3 @@ func take_turn(neighbors, living_neighbors):
 					neighbor[1].update_card()
 				neighbor[1].value -= 1
 	update_card()
-
-
-func deal(start):
-	position = start
-	$Timer.wait_time = 0.1
-	$Timer.start()
-	yield($Timer, "timeout")
-	$Tween.interpolate_property(self, "position", start, table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
-	$Tween.start()
-
-func switch_pos(other_card):  # im avoiding using the actual position of the card as much as possible, thus all of the * card_size
-	var new_pos = other_card.table_pos * card_size
-	floating = true
-	var old_table_pos = table_pos
-	table_pos = other_card.table_pos
-	other_card.table_pos = old_table_pos
-	other_card.symbol = [0, 2, 1, 3][other_card.symbol]  # why? i like one liners.
-	$Tween.interpolate_property(self, "position", old_table_pos * card_size, Vector2(old_table_pos.x * card_size.x, old_table_pos.y * card_size.y - 8), 0.1, Tween.TRANS_EXPO, Tween.EASE_OUT)
-	$Tween.start()
-	$Tween.interpolate_property(self, "position", Vector2(old_table_pos.x * card_size.x, old_table_pos.y * card_size.y - 8), Vector2(new_pos.x, new_pos.y - 8), 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
-	$Tween.start()
-	$Tween.interpolate_property(self, "position", Vector2(new_pos.x, new_pos.y - 8), Vector2(new_pos.x, new_pos.y), 0.1, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.4)
-	$Tween.start()
-	$Tween.interpolate_property(other_card, "position", other_card.table_pos * card_size, old_table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.4)
-	$Tween.start()
-	other_card.update_card()
-	yield($Tween, "tween_completed")
-	floating = false
-	update_card()
-	
