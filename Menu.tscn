@@ -11,11 +11,11 @@
 bg_color = Color( 0.721569, 0.701961, 0.670588, 1 )
 corner_detail = 1
 
-[sub_resource type="InputEventAction" id=4]
+[sub_resource type="InputEventAction" id=2]
 action = "ui_accept"
 
 [sub_resource type="ShortCut" id=3]
-shortcut = SubResource( 4 )
+shortcut = SubResource( 2 )
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -49,9 +49,9 @@ mouse_filter = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer/CenterContainer"]
 margin_left = 4.0
-margin_top = 6.0
+margin_top = 2.0
 margin_right = 132.0
-margin_bottom = 242.0
+margin_bottom = 246.0
 mouse_filter = 2
 size_flags_vertical = 3
 
@@ -62,16 +62,20 @@ margin_bottom = 184.0
 [node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer"]
 margin_top = 188.0
 margin_right = 128.0
-margin_bottom = 236.0
+margin_bottom = 244.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer"]
 margin_right = 128.0
-margin_bottom = 48.0
+margin_bottom = 56.0
 mouse_filter = 2
 
-[node name="Stepper" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
 margin_right = 24.0
-margin_bottom = 48.0
+margin_bottom = 56.0
+
+[node name="Stepper" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+margin_right = 24.0
+margin_bottom = 26.0
 focus_mode = 0
 shortcut_in_tooltip = false
 enabled_focus_mode = 0
@@ -80,10 +84,10 @@ texture_normal = ExtResource( 2 )
 texture_pressed = ExtResource( 3 )
 stretch_mode = 2
 
-[node name="Turner" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
-margin_left = 28.0
-margin_right = 52.0
-margin_bottom = 48.0
+[node name="Turner" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+margin_top = 30.0
+margin_right = 24.0
+margin_bottom = 56.0
 focus_mode = 0
 shortcut_in_tooltip = false
 enabled_focus_mode = 0
@@ -92,12 +96,12 @@ texture_pressed = ExtResource( 5 )
 stretch_mode = 2
 
 [node name="deck" type="TextureButton" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer"]
-margin_left = 56.0
-margin_right = 88.0
-margin_bottom = 48.0
+margin_left = 28.0
+margin_right = 60.0
+margin_bottom = 56.0
 rect_min_size = Vector2( 2, 0 )
 shortcut_in_tooltip = false
 texture_normal = ExtResource( 6 )
-[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/Stepper" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_Stepper_pressed"]
-[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/Turner" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_Turner_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/VBoxContainer/Stepper" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_Stepper_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/VBoxContainer/Turner" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_Turner_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer/HBoxContainer/deck" to="Panel/MarginContainer/CenterContainer/VBoxContainer/Table" method="_on_deck_pressed"]

@@ -5,6 +5,7 @@ signal dropped
 signal update_board_pos
 signal create_card
 signal switch_pos
+signal draw_card
 
 var held = false
 var floating = false
@@ -15,6 +16,7 @@ export(int) var value  				# 1-6, used in game logic
 export(Vector2) var table_pos  		#  position on the board
 export(bool) var survive = true  	#  used in game logic to decide who lives
 
+enum {SPIRAL, CIRCLE, VECTOR, FACTORY}
 #local data
 var last_pos = null
 var card_size = Vector2(32, 48-4)
@@ -31,6 +33,7 @@ func _ready():
 func _process(delta):
 	if held or floating:
 		z_index = 64
+
 
 func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
@@ -72,8 +75,7 @@ func drop():
 	update_card()
 
 func update_card():
-	value = clamp(value, 0, 6)
-	if value == 0:
+	if value < 1:
 		survive = false
 	if survive:
 		emit_signal("update_board_pos", self, self)
@@ -88,38 +90,38 @@ func update_card():
 	z_index = table_pos.y
 
 func take_turn(neighbors, living_neighbors):
-	if symbol == 0:
+	if symbol == SPIRAL:
 		var has_switched = false
 		for neighbor in living_neighbors:
-			if neighbor[1].symbol in [1, 2] and not has_switched:
+			if neighbor[1].symbol in [CIRCLE, VECTOR] and not has_switched:
 				emit_signal("switch_pos", self, neighbor[1])
 				has_switched = true
 				break
 		if not has_switched:
 			for neighbor in neighbors:
 				if not neighbor[1]:
-					emit_signal("create_card", 0, 1, neighbor[0])
+					emit_signal("draw_card", neighbor[0])
 					break
-	elif symbol == 1:  # gains 1 for each circle neighbor, generates one child
+	elif symbol == CIRCLE:  # gains 1 for each circle neighbor, generates one child
 		var has_grown = false
 		for neighbor in neighbors:
 			if neighbor[1]:
-				if neighbor[1].symbol == 1:
+				if neighbor[1].symbol == CIRCLE:
 					value += 1
 			elif not has_grown:
 				emit_signal('create_card', 1, 1, neighbor[0])
 				has_grown = true
-	elif symbol == 2: 
+	elif symbol == VECTOR: 
 		survive = false
 		for neighbor in living_neighbors:
 			if not survive:
 				# 1
-				if value > neighbor[1].value and neighbor[1].symbol in [0, 1]:
+				if value > neighbor[1].value and neighbor[1].symbol in [SPIRAL, CIRCLE]:
 					survive = true
-					neighbor[1].symbol = 2
+					neighbor[1].symbol = VECTOR
 					neighbor[1].value = value - neighbor[1].value
 					neighbor[1].update_card()
-	elif symbol == 3:
+	elif symbol == FACTORY:
 		if len(neighbors) == len(living_neighbors):
 			survive = false
 			for neighbor in living_neighbors:

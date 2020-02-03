@@ -19,7 +19,7 @@
 [ext_resource path="res://cards/values/5.png" type="Texture" id=17]
 [ext_resource path="res://cards/values/3.png" type="Texture" id=18]
 
-[sub_resource type="ShaderMaterial" id=10]
+[sub_resource type="ShaderMaterial" id=1]
 shader = ExtResource( 1 )
 
 [sub_resource type="Curve" id=2]
@@ -45,10 +45,10 @@ damping = 100.0
 damping_random = 0.24
 scale_curve = SubResource( 3 )
 
-[sub_resource type="RectangleShape2D" id=7]
+[sub_resource type="RectangleShape2D" id=5]
 extents = Vector2( 16, 22 )
 
-[sub_resource type="SpriteFrames" id=5]
+[sub_resource type="SpriteFrames" id=6]
 animations = [ {
 "frames": [ ExtResource( 4 ) ],
 "loop": true,
@@ -76,7 +76,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=6]
+[sub_resource type="SpriteFrames" id=7]
 animations = [ {
 "frames": [ ExtResource( 9 ) ],
 "loop": true,
@@ -99,7 +99,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=9]
+[sub_resource type="SpriteFrames" id=8]
 animations = [ {
 "frames": [ ExtResource( 13 ) ],
 "loop": true,
@@ -133,7 +133,7 @@ animations = [ {
 } ]
 
 [node name="Card" type="Area2D"]
-material = SubResource( 10 )
+material = SubResource( 1 )
 z_as_relative = false
 gravity_vec = Vector2( 0, 0 )
 script = ExtResource( 2 )
@@ -148,20 +148,21 @@ lifetime = 0.25
 one_shot = true
 explosiveness = 1.0
 fract_delta = false
+local_coords = false
 process_material = SubResource( 4 )
 texture = ExtResource( 3 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2( 16, 22 )
-shape = SubResource( 7 )
+shape = SubResource( 5 )
 
 [node name="card" type="AnimatedSprite" parent="."]
-frames = SubResource( 5 )
+frames = SubResource( 6 )
 animation = "0"
 offset = Vector2( 16, 24 )
 
 [node name="symbol" type="AnimatedSprite" parent="."]
-frames = SubResource( 6 )
+frames = SubResource( 7 )
 animation = "3"
 offset = Vector2( 16, 22 )
 
@@ -169,12 +170,12 @@ offset = Vector2( 16, 22 )
 
 [node name="value_0" type="AnimatedSprite" parent="card_val"]
 use_parent_material = true
-frames = SubResource( 9 )
+frames = SubResource( 8 )
 animation = "1"
 offset = Vector2( 3, 4 )
 
 [node name="value_1" type="AnimatedSprite" parent="card_val"]
-frames = SubResource( 9 )
+frames = SubResource( 8 )
 animation = "6"
 offset = Vector2( 28, 38 )
 

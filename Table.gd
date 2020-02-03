@@ -10,6 +10,8 @@ var card_positions = []
 var next_turn_ready = true
 var arr_size = Vector2(4, 4)
 var cur_pos = Vector2(3, 3)
+var init_pos = Vector2(0, 0)
+var cards_needed = 16
 
 var gotten_neighbors = false
 var current_neighbors = []
@@ -57,12 +59,14 @@ func increment_pos():
 func _process(delta):
 	if held_object:
 		if not gotten_neighbors:
+			init_pos = held_object.get_local_mouse_position()
 			gotten_neighbors = true
 			current_neighbors = get_neighbors(held_object.table_pos, false)[1]
 			print(current_neighbors)
 			for neighbor in current_neighbors:
-				neighbor.modulate = Color(1.2, 1.2, 1.2)
-		held_object.position = get_local_mouse_position() - (card_size / Vector2(2, 2))
+				if neighbor.symbol == held_object.symbol and neighbor.value + held_object.value <= 6:
+					neighbor.modulate = Color(1.2, 1.2, 1.2)
+		held_object.position = get_local_mouse_position() - init_pos
 		$shadow.position = Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1) * card_size.x, 
 								   clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1) * card_size.y)
 
@@ -107,6 +111,7 @@ func create_card(symbol: int, value: int, pos: Vector2):
 		new_card.connect("update_board_pos", self, "_on_update_board_pos")
 		new_card.connect("create_card", self, "create_card")
 		new_card.connect("switch_pos", self, "_on_switch_pos")
+		new_card.connect("draw_card", self, "draw_card")
 		add_child(new_card)
 		return new_card
 
@@ -129,12 +134,14 @@ func _on_pickable_dropped(object):
 		var new_spot = card_positions[held_object.table_pos.x][held_object.table_pos.y]
 		if new_spot:
 			if new_spot.symbol == held_object.symbol and new_spot.value + held_object.value <= 6 and new_spot in new_spot_neighbors:
-				print('here')
 				new_spot.value += held_object.value
 				new_spot.update_card()
 				held_object.survive = false
+				var new_n = get_neighbors(held_object.table_pos, true)
+				new_spot.take_turn(new_n[0], new_n[1])
 			held_object.table_pos = held_object.last_pos
-		held_object.position = held_object.table_pos * card_size
+		$Tween.interpolate_property(held_object, "position", held_object.position, held_object.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
+		$Tween.start()
 		held_object.drop()
 		held_object = null
 
@@ -175,15 +182,19 @@ func _on_switch_pos(card_a, card_b):
 	$Tween.interpolate_property(card_a, "z_index", 32, card_a.table_pos.y, 0.5, Tween.TRANS_LINEAR, Tween.EASE_OUT)
 	
 
+func draw_card(where):
+	var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], where)
+	new_card.position = Vector2(56, 188)
+	$autotimer.start()
+	$Tween.interpolate_property(new_card, "position", Vector2(56, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
+	$Tween.start()
+	deck.pop_front()
+	
+
 func _on_deck_pressed():
-	$autotimer.wait_time = 0.4
+	$autotimer.wait_time = 0.2
 	for i in range(arr_size.x):
 		for j in range(arr_size.y):
 			if not card_positions[j][i]:
-				var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], Vector2(j, i))
-				new_card.position = Vector2(56, 188)
-				$autotimer.start()
+				draw_card(Vector2(j, i))
 				yield($autotimer, "timeout")
-				$Tween.interpolate_property(new_card, "position", Vector2(56, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
-				$Tween.start()
-				deck.pop_front()
