@@ -41,6 +41,9 @@ func _process(delta):
 func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
+func lp():
+	return '%d%d' % [value, symbol]
+
 func _input_event(viewport, event, shape_idx):
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_LEFT:
@@ -60,7 +63,7 @@ func _input_event(viewport, event, shape_idx):
 			else:
 				value = 1
 		elif event.button_index == BUTTON_WHEEL_DOWN and event.pressed:
-			if value > 1:
+			if value > 0:
 				value -= 1
 			else:
 				value = 6
@@ -77,14 +80,9 @@ func drop():
 	update_card()
 
 func update_card():
-	print(ps())
 	if value < 1:
 		survive = false
-	if survive:
-		emit_signal("update_board_pos", self)
-	else:
-		emit_signal('update_board_pos', self)
-	value = clamp(value, 1, 6)
+	emit_signal('update_board_pos', self)
 	$symbol.animation = str(symbol)
 	$card_val/value_0.animation = str(value)
 	$card_val/value_1.animation = str(value)
@@ -93,24 +91,34 @@ func update_card():
 
 
 func take_turn(target, neighbors, living_neighbors):
-	if target.symbol == symbol and value + target.value <= 6:
-		target.value += value
+	print('S:', self, '\nT: ', target, '\nN: ',neighbors,'\nLN: ' ,living_neighbors)
+	if target.symbol == symbol:
+		target.value = max(value, target.value)
 		target.update_card()
 		survive = false
 		update_card()
 		return true
 	elif symbol == SPIRAL and target.symbol in [CIRCLE, VECTOR]:
+		table_pos = last_pos
 		emit_signal("switch_pos", self, target)
 		value -= 1
 		return true
 	elif symbol == CIRCLE and target.symbol in [VECTOR, SPIRAL]:
+		for neighbor in living_neighbors:
+			neighbor.value += 1
 		var old_val = target.value
 		target.value = value
 		value = old_val
+		target.table_pos = table_pos
+		table_pos = last_pos
+		target.update_card()
 		return true
 	elif symbol == VECTOR and value > target.value and target.symbol in [SPIRAL, CIRCLE]: 
 		target.value = value - target.value
+		target.symbol = symbol
+		table_pos = last_pos
 		target.update_card()
+		table_pos = last_pos
 		return true
 	elif symbol == FACTORY:
 		if len(neighbors) == len(living_neighbors):

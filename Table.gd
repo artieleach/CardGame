@@ -16,21 +16,12 @@ var current_neighbors = []
 var possible_neighbors = [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
 var deck = [
-[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'], [5, 'V'], [6, 'V'], 
-[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'], [5, 'V'], [6, 'V'],
-[1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'], [5, 'O'], [6, 'O'], 
-[1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'], [5, 'O'], [6, 'O'],
-[1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'], [5, 'G'], [6, 'G'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'], [5, 'G'], [6, 'G'],
-[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'], [5, 'V'], [6, 'V'], 
-[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'], [5, 'V'], [6, 'V'],
-[1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'], [5, 'O'], [6, 'O'], 
-[1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'], [5, 'O'], [6, 'O'],
-[1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'], [5, 'G'], [6, 'G'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'], [5, 'G'], [6, 'G'],
-[1, 'M'], [2, 'M'], [3, 'M'], [4, 'M'], [5, 'M'], [6, 'M']
+[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'],  [5, 'V'], 
+[1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'],  [5, 'O'], 
+[1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'],  [5, 'G'], 
+[6, 'M'], 
 ]
-
+var deck_copy = deck.duplicate(true)
 var deck_symbols = ['G', 'O', 'V', 'M']
 
 func rtg(pos: Vector2):
@@ -107,45 +98,14 @@ func _on_pickable_dropped(object):
 										clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1))
 		var new_spot = card_positions[held_object.table_pos.x][held_object.table_pos.y]
 		if new_spot:
-			held_object.take_turn(new_spot, neighborhood[0], neighborhood[1])
-			if held_object.symbol == SPIRAL:
-				if new_spot.symbol != held_object.symbol:
-					held_object.table_pos = held_object.last_pos
-					held_object.take_turn([[new_spot.table_pos, new_spot]], [[new_spot.table_pos, new_spot]])
-				elif new_spot.value + held_object.value <= 6:
-						new_spot.value += held_object.value
-						new_spot.update_card()
-						var new_n = get_neighbors(new_spot.table_pos, true)
-						held_object.survive = false
-				else:
-					held_object.table_pos = held_object.last_pos
-			if held_object.symbol == CIRCLE:
-				if new_spot.symbol != held_object.symbol:
-					held_object.table_pos = held_object.last_pos
-				elif new_spot.value + held_object.value <= 6:
-					combine_turn(new_spot, held_object)
-				else:
-					held_object.table_pos = held_object.last_pos
-			if held_object.symbol == VECTOR:
-				if new_spot.symbol != held_object.symbol:
-					held_object.table_pos = held_object.last_pos
-					held_object.take_turn([[new_spot.table_pos, new_spot]], [[new_spot.table_pos, new_spot]])
-				elif new_spot.value + held_object.value <= 6:
-					combine_turn(new_spot, held_object) 
-				else:
-					held_object.table_pos = held_object.last_pos
-		
+			var turn_is_valid = held_object.take_turn(new_spot, neighborhood[0], neighborhood[1])
+			print(turn_is_valid)
+			if not turn_is_valid:
+				held_object.table_pos = held_object.last_pos
 		$Tween.interpolate_property(held_object, "position", held_object.position, held_object.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
 		$Tween.start()
 		held_object.drop()
 		held_object = null
-
-func combine_turn(card, old_card):
-	card.value += old_card.value
-	card.update_card()
-	var new_n = get_neighbors(card.table_pos, true)
-	old_card.survive = false
-	card.take_turn(new_n[0], new_n[1])
 
 func _on_update_board_pos(card):
 	if card.survive:
@@ -163,6 +123,7 @@ func _on_turner_pressed():
 				card.update_card()
 
 func _on_switch_pos(card_a, card_b):
+	print('called?')
 	var new_pos = card_b.table_pos * card_size
 	var old_table_pos = card_a.table_pos
 	card_a.table_pos = card_b.table_pos
@@ -176,14 +137,17 @@ func _on_switch_pos(card_a, card_b):
 func draw_card(where):
 	if deck:
 		var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], where)
-		new_card.position = Vector2(56, 188)
+		new_card.position = Vector2(0, 188)
 		$autotimer.start()
-		$Tween.interpolate_property(new_card, "position", Vector2(56, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1)
+		$Tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05)
 		$Tween.start()
 		deck.pop_front()
+	else:
+		deck = deck_copy.duplicate(true)
+		deck.shuffle()
 
 func _on_deck_pressed():
-	$autotimer.wait_time = 0.01
+	$autotimer.wait_time = 0.05
 	for x in range(arr_size.x):
 		for y in range(arr_size.y):
 			if not card_positions[x][y]:
