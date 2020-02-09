@@ -31,10 +31,10 @@ var symbol_colors = [
 func _ready():
 	last_pos = table_pos
 	$card.animation = str(randi() % 4)  # there are currently five card textures
-	update_card()
+	update_card('ready')
 
 func _process(delta):
-	if held or floating:
+	if held or floating and symbol != FACTORY:
 		z_index = 64
 
 
@@ -42,11 +42,11 @@ func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func lp():
-	return '%d%d' % [value, symbol]
+	return '%d%s' % [value, ['G', 'O', 'V', 'M'][symbol]]
 
 func _input_event(viewport, event, shape_idx):
 	if event is InputEventMouseButton:
-		if event.button_index == BUTTON_LEFT:
+		if event.button_index == BUTTON_LEFT and symbol != FACTORY:
 			if event.pressed:  # when the mouse is pressed, pickup
 				emit_signal('picked', self)
 				held = true
@@ -67,19 +67,19 @@ func _input_event(viewport, event, shape_idx):
 				value -= 1
 			else:
 				value = 6
-		update_card() 
 
 func pickup():
-	if not held:
+	if not held and symbol != FACTORY:
 		last_pos = table_pos
 		held = true
 
 func drop():
 	$ThumpParticles.emitting = true
 	held = false
-	update_card()
+	update_card('drop')
 
-func update_card():
+func update_card(called_from):
+	print_debug(self, lp(), called_from)
 	if value < 1:
 		survive = false
 	emit_signal('update_board_pos', self)
@@ -91,47 +91,41 @@ func update_card():
 
 
 func take_turn(target, neighbors, living_neighbors):
-	print('S:', self, '\nT: ', target, '\nN: ',neighbors,'\nLN: ' ,living_neighbors)
-	if target.symbol == symbol:
+	if target and target.symbol == symbol:
 		target.value = max(value, target.value)
-		target.update_card()
 		survive = false
-		update_card()
+		update_card('take turn')
+		target.update_card('target take turn')
+		emit_signal("draw_card", target.value)
 		return true
 	elif symbol == SPIRAL and target.symbol in [CIRCLE, VECTOR]:
 		table_pos = last_pos
+		target.symbol = [0, 2, 1, 3][target.symbol]
 		emit_signal("switch_pos", self, target)
 		value -= 1
 		return true
 	elif symbol == CIRCLE and target.symbol in [VECTOR, SPIRAL]:
-		for neighbor in living_neighbors:
-			neighbor.value += 1
+		table_pos = last_pos
 		var old_val = target.value
 		target.value = value
 		value = old_val
-		target.table_pos = table_pos
-		table_pos = last_pos
-		target.update_card()
+		emit_signal("switch_pos", self, target)
+		target.update_card('target take turn')
 		return true
 	elif symbol == VECTOR and value > target.value and target.symbol in [SPIRAL, CIRCLE]: 
+		table_pos = last_pos
 		target.value = value - target.value
-		target.symbol = symbol
-		table_pos = last_pos
-		target.update_card()
-		table_pos = last_pos
+		emit_signal("switch_pos", self, target)
 		return true
 	elif symbol == FACTORY:
-		if len(neighbors) == len(living_neighbors):
-			survive = false
-			for neighbor in living_neighbors:
-				if neighbor[1].symbol != living_neighbors[0][1].symbol:
-					survive = true
-		if survive:
-			for neighbor in living_neighbors:
-				if neighbor[1].symbol == CIRCLE:
-					neighbor[1].symbol = FACTORY
-					neighbor[1].update_card()
+		for neighbor in living_neighbors:
+			if neighbor[1].symbol != symbol:
 				neighbor[1].value -= 1
-		return survive
-	update_card()
+			else:
+				value += 1
+			if neighbor[1].symbol == CIRCLE and neighbor[1].value == 0:
+				neighbor[1].symbol = FACTORY
+				neighbor[1].value = 1
+			neighbor[1].update_card('factory take turn')
+	update_card('take turn')
 	return false
