@@ -38,7 +38,7 @@ func _ready():
 		for y in range(arr_size.y):
 			card_positions[x].append([])
 
-func _process(delta):
+func _process(_delta):
 	if held_object:
 		if not gotten_neighbors:
 			gotten_neighbors = true
@@ -82,6 +82,7 @@ func create_card(symbol: int, value: int, pos: Vector2):
 		new_card.connect("update_board_pos", self, "_on_update_board_pos")
 		new_card.connect("switch_pos", self, "_on_switch_pos")
 		new_card.connect("draw_card", self, "draw_card")
+		new_card.connect("create_card", self, "create_card")
 		add_child(new_card)
 		return new_card
 
@@ -90,7 +91,6 @@ func _on_pickable_clicked(object):
 		$shadow.visible = true
 		held_object = object
 		held_object.pickup()
-		print('here?')
 
 func _on_pickable_dropped(object):
 	var turn_is_valid = false
@@ -108,12 +108,19 @@ func _on_pickable_dropped(object):
 		if new_spot:
 			if  new_spot in neighbors[0]:
 				turn_is_valid = held_object.take_turn(new_spot, neighborhood[0], neighborhood[1])
-				if not turn_is_valid:
+				if turn_is_valid:
+					if new_spot.symbol == held_object.symbol:
+						neighborhood = get_neighbors(new_spot.table_pos, true)
+						new_spot.target_take_turn(neighborhood[1])
+				else:
 					held_object.table_pos = held_object.last_pos
 			else:
 				held_object.table_pos = held_object.last_pos
 		elif held_object.table_pos != held_object.last_pos:
-			turn_is_valid = true
+			if held_object.table_pos.distance_to(held_object.last_pos) == 1:
+				turn_is_valid = true
+			else:
+				held_object.table_pos = held_object.last_pos
 		$Tween.interpolate_property(held_object, "position", held_object.position, held_object.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
 		$Tween.start()
 		held_object.drop()
@@ -126,10 +133,9 @@ func _on_pickable_dropped(object):
 			cur_turn = turn_counter
 			for row in card_positions:
 				for card in row:
-					if card and card.symbol == FACTORY:
+					if card and card.symbol == FACTORY and card.value > 1:
 						neighborhood = get_neighbors(card.table_pos, true)
 						card.take_turn(null, neighborhood[0], neighborhood[1])
-		print(turn_counter)
 
 func _on_update_board_pos(card):
 	if card.survive:
@@ -157,21 +163,21 @@ func _on_switch_pos(card_a, card_b):
 	$Tween.start()
 
 func draw_card(num_to_draw):
+	for y in range(arr_size.y):
 		for x in range(arr_size.x):
-			for y in range(arr_size.y):
-				if not card_positions[x][y] and num_to_draw > 0:
-					if deck:
-						var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], Vector2(x, y))
-						new_card.position = Vector2(0, 188)
-						num_to_draw -= 1
-						$Tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05)
-						$Tween.start()
-						deck.pop_front()
-					else:
-						deck = deck_copy.duplicate(true)
-						deck.shuffle()
-						draw_card(num_to_draw)
-		num_to_draw = 0
+			if not card_positions[x][y] and num_to_draw > 0:
+				if deck:
+					var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], Vector2(x, y))
+					new_card.position = Vector2(0, 188)
+					num_to_draw -= 1
+					$Tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05)
+					$Tween.start()
+					deck.pop_front()
+				else:
+					deck = deck_copy.duplicate(true)
+					deck.shuffle()
+					draw_card(num_to_draw)
+	num_to_draw = 0
 
 func _on_deck_pressed():
 	$autotimer.wait_time = 0.05
