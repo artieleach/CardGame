@@ -1,0 +1,101 @@
+so you habve some stats whcih need to be managed, removing cards/adding cards affects these stats
+
+at the end of each turn, each card on the board exhibits some simple behavior, 
+then cards are added to the board
+
+you need to manage both your stats and also the board
+
+OKSOUNDSGOOD
+
+behaviors v5:
+	circle: 
+		gains 1 for each neighboring circle, 
+		grows whereever available. 
+	spiral: 
+		switches spots and values with a non spiral card, or generates one spiral
+		turns cicles into V's and vice versa
+	V: 
+		turns a nearby card of lesser value into a V (new card val = cur card.value - lesser value card.value), otherwise fizzles out.
+		loses 1
+	factory: 
+		turns circles into factories, otherwise destroys a neighbor 
+		suffocates if surrounded by any single type of tile
+
+
+create a function to send the positions of the cards back to the main table, clear the table after each turn then take that as the new input
+OKO
+
+alright i got lost with all the signals
+
+make a flow chart for order of ops
+
+current bug: i want to make it so that you can only combine neighbor cards, but that isnt working. fix pls.
+
+
+
+game idea update:
+cards take their turn when you combine them or when you select them
+
+new rules:
+Circles: bolsters each neighbor
+Spirals: switch symbol with the target
+Vectors: destroy a neighbor, 
+Factories
+
+
+
+alright so you have 3 turns to prevent the factories from destorying any nearby cells
+
+on your turn you have the following actions:
+	moving cards
+	combining cards
+	activating cards
+
+moving cards:
+	cards can be moved one tile at a time
+combining cards:
+	cards of the same suit can be combined
+	when theyre combined, their action triggers
+activating cards:
+	cards can be triggered by having them interact with a nearby card of a different suit
+
+
+triggers:
+	green:
+		give +1
+		loses 1
+	blue:
+		swap suit/value
+	red:
+		turns card into a red with value of red.val - card.val
+
+
+
+have spirals rotate each card when triggered? and the goal is to get the factories to destory eachother?
+cards have two triggers, one when combined, one when swapped
+swapped:
+	spirals switch suit
+	circles add value
+	vectors remove value
+	
+combined
+	spirals rotate every nearby card
+	circles draw $value cards
+	vectors deal $value damage to factories
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
