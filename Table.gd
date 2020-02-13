@@ -2,13 +2,14 @@ extends TextureRect
 
 export (PackedScene) var Card
 
+signal game_over
+
 var card_size =Vector2(32, 43)  # the tile is _actually_ 36 high, but the bottom 4 are a different face,  so i dont count them
 enum {SPIRAL, CIRCLE, VECTOR, FACTORY}
 var held_object = null
 
 var card_positions = []
 var arr_size = Vector2(4, 4)
-var cur_pos = Vector2(3, 3)
 var init_mouse_pose = Vector2(0, 0)
 var gotten_neighbors = false
 var current_neighbors = []
@@ -19,16 +20,13 @@ var cur_turn = 0
 var possible_neighbors = [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
 var deck = [
-[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'],  [5, 'V'], 
 [1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'],  [5, 'O'], 
 [1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'],  [5, 'G'], 
-[6, 'M'], 
+[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'],  [5, 'V'], 
+[6, 'M']
 ]
 var deck_copy = deck.duplicate(true)
 var deck_symbols = ['G', 'O', 'V', 'M']
-
-func rtg(pos: Vector2):
-	return Vector2(int(pos.x / card_size.x), int(pos.y / card_size.y))
 
 func _ready():
 	randomize()
@@ -43,16 +41,16 @@ func _process(_delta):
 		if not gotten_neighbors:
 			gotten_neighbors = true
 			init_mouse_pose = held_object.get_local_mouse_position()
+			init_mouse_pose = Vector2(clamp(init_mouse_pose.x, 2, card_size.x-2), clamp(init_mouse_pose.y, 2, card_size.y-2))
 			current_neighbors = get_neighbors(held_object.table_pos, false)[1]
 			for neighbor in current_neighbors:
-				if neighbor.symbol == held_object.symbol or held_object.symbol == SPIRAL and neighbor.symbol != FACTORY:
+				if neighbor.table_pos in held_object.possible_moves:
 					neighbor.modulate = Color(1.2, 1.2, 1.2)
 		held_object.position = get_local_mouse_position() - init_mouse_pose
 		$shadow.position =  Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1) * card_size.x, 
 								   clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1) * card_size.y)
-		
 		$highlight.position = $shadow.position
-		
+
 func get_neighbors(spot: Vector2, need_positions:= true) -> Array:
 	var neighbors = []
 	var living_neighbors = []
@@ -76,6 +74,7 @@ func create_card(symbol: int, value: int, pos: Vector2):
 		new_card.value = value
 		new_card.table_pos = pos
 		new_card.position = pos * card_size
+		new_card.turn_created = turn_counter
 		card_positions[pos.x][pos.y] = new_card
 		new_card.connect("picked", self, "_on_pickable_clicked")
 		new_card.connect("dropped", self, "_on_pickable_dropped")
@@ -121,21 +120,45 @@ func _on_pickable_dropped(object):
 				turn_is_valid = true
 			else:
 				held_object.table_pos = held_object.last_pos
-		$Tween.interpolate_property(held_object, "position", held_object.position, held_object.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
+		$Tween.interpolate_property(
+			held_object, "position", 
+			held_object.position, 
+			held_object.table_pos * card_size, 0.2, 
+			Tween.TRANS_EXPO, 
+			Tween.EASE_OUT)
 		$Tween.start()
 		held_object.drop()
-		if new_spot:
+		if new_spot and new_spot in neighbors[0]:
 			new_spot.update_card('pickable dropped new spot')
 		held_object = null
 		if turn_is_valid:
 			turn_counter += 1
-		if turn_counter % 2 == 0 and cur_turn != turn_counter:
+		if turn_counter != cur_turn:
 			cur_turn = turn_counter
 			for row in card_positions:
 				for card in row:
-					if card and card.symbol == FACTORY and card.value > 1:
+					if card and card.symbol == FACTORY and turn_counter > card.turn_created + 1 and (turn_counter + card.turn_created) % 2 == 0:
 						neighborhood = get_neighbors(card.table_pos, true)
 						card.take_turn(null, neighborhood[0], neighborhood[1])
+	calculate_possible_moves()
+
+func calculate_possible_moves():
+	for row in card_positions:
+		for card in row:
+			if card and card.symbol != FACTORY:
+				#card.update_card()
+				var cur_n = get_neighbors(card.table_pos, false)
+				card.possible_moves = []
+				for neighbor in cur_n[1]:
+					if neighbor.symbol == card.symbol:
+						card.possible_moves.append(neighbor.table_pos)
+					elif card.symbol == SPIRAL:
+						if card.symbol in [CIRCLE, VECTOR, SPIRAL]:
+							card.possible_moves.append(neighbor.table_pos)
+					elif card.symbol in [CIRCLE, VECTOR]:
+						if card.value > neighbor.value and neighbor.symbol != FACTORY:
+							card.possible_moves.append(neighbor.table_pos)
+				#printt(card.lp(), card.possible_moves)
 
 func _on_update_board_pos(card):
 	if card.survive:
@@ -145,12 +168,6 @@ func _on_update_board_pos(card):
 		if card in current_neighbors:
 			current_neighbors.remove(current_neighbors.find(card))
 		card.queue_free()
-
-func _on_turner_pressed():
-	for row in card_positions:
-		for card in row:
-			if card:
-				card.update_card('turner pressed')
 
 func _on_switch_pos(card_a, card_b):
 	var new_pos = card_b.table_pos * card_size
@@ -163,14 +180,33 @@ func _on_switch_pos(card_a, card_b):
 	$Tween.start()
 
 func draw_card(num_to_draw):
+	var total_to_draw = num_to_draw
 	for y in range(arr_size.y):
 		for x in range(arr_size.x):
 			if not card_positions[x][y] and num_to_draw > 0:
 				if deck:
 					var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], Vector2(x, y))
-					new_card.position = Vector2(0, 188)
+					new_card.position = Vector2(0, 183)
 					num_to_draw -= 1
-					$Tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05)
+					$Tween.interpolate_property(
+						new_card, 
+						"position", 
+						Vector2(0, 188), 
+						new_card.table_pos * card_size, 
+						0.3, 
+						Tween.TRANS_EXPO, 
+						Tween.EASE_OUT, 
+						0.05 * (total_to_draw - num_to_draw))
+					$Tween.start()
+					$Tween.interpolate_property(
+						new_card, 
+						"z_index", 
+						num_to_draw*10, 
+						new_card.table_pos.y, 
+						0.3, 
+						Tween.TRANS_LINEAR, 
+						Tween.EASE_OUT, 
+						0.05 * (total_to_draw - num_to_draw))
 					$Tween.start()
 					deck.pop_front()
 				else:
@@ -180,13 +216,5 @@ func draw_card(num_to_draw):
 	num_to_draw = 0
 
 func _on_deck_pressed():
-	$autotimer.wait_time = 0.05
-	for i in range(arr_size.x * arr_size.y):
-		draw_card(1)
-		yield(get_tree().create_timer(0.05), "timeout")
-
-
-func _on_autotimer_timeout():
-	pass
-
-
+	draw_card(16)
+	calculate_possible_moves()

@@ -7,8 +7,10 @@
 [ext_resource path="res://cards/shadow.png" type="Texture" id=5]
 
 [node name="Table" type="TextureRect"]
-margin_right = 128.0
-margin_bottom = 179.0
+anchor_right = 0.889
+anchor_bottom = 0.699
+margin_right = -0.0160065
+margin_bottom = 0.0559845
 mouse_filter = 2
 texture = ExtResource( 2 )
 script = ExtResource( 3 )
@@ -29,14 +31,4 @@ z_index = 128
 texture = ExtResource( 1 )
 centered = false
 
-[node name="Timer" type="Timer" parent="."]
-wait_time = 0.5
-one_shot = true
-
-[node name="autotimer" type="Timer" parent="."]
-wait_time = 0.3
-autostart = true
-
 [node name="Tween" type="Tween" parent="."]
-[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
-[connection signal="timeout" from="autotimer" to="." method="_on_autotimer_timeout"]
