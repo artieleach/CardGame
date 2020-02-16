@@ -22,13 +22,13 @@
 [ext_resource path="res://water.png" type="Texture" id=20]
 [ext_resource path="res://fire.png" type="Texture" id=21]
 
-[sub_resource type="RectangleShape2D" id=5]
+[sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 16, 21.5 )
 
-[sub_resource type="Curve" id=1]
+[sub_resource type="Curve" id=2]
 _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="SpriteFrames" id=2]
+[sub_resource type="SpriteFrames" id=3]
 animations = [ {
 "frames": [ ExtResource( 4 ) ],
 "loop": true,
@@ -56,7 +56,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=3]
+[sub_resource type="SpriteFrames" id=4]
 animations = [ {
 "frames": [ ExtResource( 9 ), ExtResource( 21 ) ],
 "loop": true,
@@ -79,7 +79,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=4]
+[sub_resource type="SpriteFrames" id=5]
 animations = [ {
 "frames": [ ExtResource( 13 ) ],
 "loop": true,
@@ -124,7 +124,7 @@ script = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2( 16, 21.5 )
-shape = SubResource( 5 )
+shape = SubResource( 1 )
 
 [node name="ThumpParticles" type="CPUParticles2D" parent="."]
 position = Vector2( 16, 22 )
@@ -147,26 +147,26 @@ initial_velocity_random = 0.5
 angular_velocity = -4.32978e-17
 damping = 100.0
 damping_random = 0.24
-scale_amount_curve = SubResource( 1 )
+scale_amount_curve = SubResource( 2 )
 
 [node name="card" type="AnimatedSprite" parent="."]
-frames = SubResource( 2 )
+frames = SubResource( 3 )
 animation = "4"
 offset = Vector2( 16, 24 )
 
 [node name="symbol" type="AnimatedSprite" parent="."]
-frames = SubResource( 3 )
+frames = SubResource( 4 )
 animation = "0"
 offset = Vector2( 16, 22 )
 
 [node name="card_val" type="Node2D" parent="."]
 
 [node name="value_0" type="AnimatedSprite" parent="card_val"]
-frames = SubResource( 4 )
+frames = SubResource( 5 )
 animation = "0"
 offset = Vector2( 2, 3 )
 
 [node name="value_1" type="AnimatedSprite" parent="card_val"]
-frames = SubResource( 4 )
+frames = SubResource( 5 )
 animation = "0"
 offset = Vector2( 29, 39 )

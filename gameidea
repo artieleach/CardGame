@@ -83,13 +83,9 @@ combined
 	circles draw $value cards
 	vectors deal $value damage to factories
 
+buff green
 
-
-ALL OF YOUR WOES ARE CAUSED BY THis:
-when dropping a card, if there is another card in that spot and the turn isnt valid, that card is being picked up
-because of that, its location is listed as empty and its floating above the other cards
-
-
+somehow nerf factories, currently once they start spiraling its GG
 
 
 
