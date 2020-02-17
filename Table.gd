@@ -22,14 +22,14 @@ onready var shadow = get_node("Shadow")
 
 var possible_neighbors = [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
-var _deck = [
-[1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [1, 'G'],  [2, 'G'], 
-[1, 'V'], [2, 'V'], [3, 'V'], [1, 'V'],  [2, 'V'], 
-[6, 'M']
+var deck = [
+[1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'],  [5, 'O'], 
+[1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'],  [5, 'G'], 
+[1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'],  [5, 'V'], 
+[9, 'M']
 ]
 
-var deck = [
+var _deck = [
 [1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
 [1, 'G'], [2, 'G'], [3, 'G'], [1, 'G'],  [2, 'G'], 
 [1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
@@ -55,10 +55,10 @@ func _process(_delta):
 			gotten_neighbors = true
 			init_mouse_pose = held_object.get_local_mouse_position()
 			init_mouse_pose = Vector2(clamp(init_mouse_pose.x, 2, card_size.x-2), clamp(init_mouse_pose.y, 2, card_size.y-2))
-			current_neighbors = get_neighbors(held_object.table_pos, false)[1]
+			current_neighbors = get_neighbors(held_object)[1]
 			for neighbor in current_neighbors:
-				if neighbor.table_pos in held_object.possible_moves:
-					neighbor.modulate = Color(1.2, 1.2, 1.2)
+				if neighbor[1].table_pos in held_object.possible_moves:
+					neighbor[1].modulate = Color(1.2, 1.2, 1.2)
 		held_object.position = get_local_mouse_position() - init_mouse_pose
 		shadow.position =  Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1) * card_size.x, 
 									clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1) * card_size.y)
@@ -74,10 +74,11 @@ func _on_pickable_dropped(object):
 	var turn_is_valid = false
 	shadow.visible = false
 	gotten_neighbors = false
-	for neighbor in current_neighbors:
-		neighbor.modulate = Color(1, 1, 1)
 	if held_object and held_object == object:
-		var neighbors = get_neighbors(held_object.table_pos)
+		current_neighbors = get_neighbors(held_object, held_object.last_pos)[1]
+		for neighbor in current_neighbors:
+			neighbor[1].modulate = Color(1, 1, 1)
+		var neighbors = get_neighbors(held_object)
 		held_object.table_pos = Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1), 
 										clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1))
 		var new_spot = card_positions[held_object.table_pos.x][held_object.table_pos.y]
@@ -93,8 +94,7 @@ func _on_pickable_dropped(object):
 				held_object.table_pos = held_object.last_pos
 		tween.interpolate_property(held_object, "position", held_object.position, held_object.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
 		tween.start()
-		if held_object.value > 0:
-			held_object.drop()
+		held_object.drop()
 		held_object = null
 		if turn_is_valid:
 			turn_counter += 1
@@ -103,7 +103,7 @@ func _on_pickable_dropped(object):
 			for row in card_positions:
 				for card in row:
 					if card and card.symbol == FACTORY and turn_counter > card.turn_created + 1 and (turn_counter + card.turn_created) % 3 == 0:
-						var neighborhood = get_neighbors(card.table_pos)
+						var neighborhood = get_neighbors(card)
 						card.factory_take_turn(neighborhood[0], neighborhood[1])
 	calculate_possible_moves()
 
@@ -123,32 +123,28 @@ func create_card(symbol: int, value: int, pos: Vector2):
 		new_card.connect("switch_pos", self, "_on_switch_pos")
 		new_card.connect("draw_card", self, "draw_card")
 		new_card.connect("create_card", self, "create_card")
-		new_card.connect("get_neighbors", self, "get_neighbors")
 		new_card.connect("target_take_turn", self, "target_take_turn")
 		add_child(new_card)
 		return new_card
 
-func get_neighbors(spot: Vector2, need_positions:= true) -> Array:
+func get_neighbors(card, spot:=Vector2(0, 0)) -> Array:
+	if spot == Vector2(0, 0):
+		spot = card.table_pos
 	var neighbors = []
 	var living_neighbors = []
 	for poss_n in possible_neighbors:
 		if 0 <= spot.x + poss_n.x and spot.x + poss_n.x < arr_size.x and 0 <= spot.y + poss_n.y and spot.y + poss_n.y < arr_size.y:
-			if need_positions:
-				neighbors.append([Vector2(spot.x + poss_n.x, spot.y + poss_n.y), card_positions[spot.x + poss_n.x][spot.y + poss_n.y]])
-				if neighbors[-1][1]:
-					living_neighbors.append(neighbors[-1])
-			else:
-				neighbors.append(card_positions[spot.x + poss_n.x][spot.y + poss_n.y])
-				if neighbors[-1]:
-					living_neighbors.append(neighbors[-1])
+			neighbors.append([Vector2(spot.x + poss_n.x, spot.y + poss_n.y), card_positions[spot.x + poss_n.x][spot.y + poss_n.y]])
+			if neighbors[-1][1]:
+				living_neighbors.append(neighbors[-1])
 	return [neighbors, living_neighbors]
 
 func calculate_possible_moves():
 	for row in card_positions:
 		for card in row:
 			if card and card.symbol != FACTORY:
-				#card.update_card()
-				var cur_n = get_neighbors(card.table_pos)
+				card.update_card()
+				var cur_n = get_neighbors(card)
 				card.possible_moves = []
 				for neighbor in cur_n[1]:
 					if neighbor[1].symbol == card.symbol:
@@ -164,7 +160,8 @@ func _on_update_board_pos(card):
 	if card.value > 0:
 		card_positions[card.table_pos.x][card.table_pos.y] = card
 	else:
-		card_positions[card.table_pos.x][card.table_pos.y] = []
+		if card in [card_positions[card.table_pos.x][card.table_pos.y]]:
+			card_positions[card.table_pos.x][card.table_pos.y] = []
 		if card in current_neighbors:
 			current_neighbors.remove(current_neighbors.find(card))
 		card.queue_free()
@@ -207,4 +204,4 @@ func _on_deck_pressed():
 	calculate_possible_moves()
 
 func target_take_turn(card):
-	card.target_take_turn(get_neighbors(card.table_pos)[1])
+	card.target_take_turn(get_neighbors(card)[1])

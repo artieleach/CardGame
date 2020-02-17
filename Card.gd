@@ -9,7 +9,6 @@ signal switch_pos
 signal draw_card
 signal create_card
 signal target_take_turn
-signal get_neighbors
 
 var arr_size = Vector2(4, 4)
 
@@ -56,7 +55,7 @@ func _input_event(_viewport, event, _shape_idx):
 				$CollisionShape2D.shape.extents = Vector2(160, 215)
 				emit_signal('picked', self)
 				held = true
-			if not event.pressed:  # when released, drop
+			else:  # when released, drop
 				$CollisionShape2D.shape.extents = Vector2(16, 21.5)
 				emit_signal('dropped', self)
 		elif event.button_index == BUTTON_RIGHT and event.pressed:
@@ -65,7 +64,7 @@ func _input_event(_viewport, event, _shape_idx):
 			else:
 				symbol = 0
 		elif event.button_index == BUTTON_WHEEL_UP and event.pressed:
-			if value < 6:
+			if value < 9:
 				value += 1
 		elif event.button_index == BUTTON_WHEEL_DOWN and event.pressed:
 			if value > 0:
@@ -84,7 +83,7 @@ func drop():
 func update_card(called_from := "null"):
 	if called_from != "null":
 		printt(self, lp(), called_from)
-	if value > 0:
+	if value > 0 and 10 > value:
 		$card_val/value_0.animation = str(value)
 		$card_val/value_1.animation = str(value)
 	emit_signal('update_board_pos', self)
@@ -107,8 +106,8 @@ func take_turn(target):
 		value -= 1
 		return true
 	elif symbol == CIRCLE and value > target.value and target.symbol != FACTORY:
-		target.value += 1
-		value -= 1
+		target.value += value
+		value = 0
 		emit_signal("switch_pos", self, target)
 		target.update_card('target take turn')
 		return true
@@ -132,17 +131,16 @@ func factory_take_turn(neighbors, living_neighbors):
 		neighbor[1].update_card('factory take turn')
 
 func target_take_turn(living_neighbors):
+	var living_val = value
+	value = 0
+	emit_signal('update_board_pos', self)
 	if symbol == CIRCLE:
-		var cards_to_draw = value
-		value = 0
-		emit_signal('update_board_pos', self)
-		emit_signal("draw_card", cards_to_draw)
+		emit_signal("draw_card", living_val)
 	if symbol == SPIRAL:
 		for neighbor in living_neighbors:
 			neighbor[1].symbol = [0, 2, 1, 3][neighbor[1].symbol]
 			neighbor[1].update_card('sworlt')
 	if symbol == VECTOR:
 		for neighbor in living_neighbors:
-			neighbor[1].value -= value
+			neighbor[1].value -= living_val
 			neighbor[1].update_card('vector take turn')
-		value = 0
