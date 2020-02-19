@@ -17,27 +17,29 @@ var current_neighbors = []
 var turn_counter = 0
 var cur_turn = 0
 
+var symbol_colors = [
+	Color(0.0, 0.0, 0.533),   # blue
+	Color(0.0, .235, 0.0),    # green
+	Color(.533, .0, .0),      # red
+	Color(.3, .3, .3),  # grey
+	Color(0.0, 0.0, 0.0)]     # black
+
 onready var tween = get_node("Tween")
 onready var shadow = get_node("Shadow")
 
 var possible_neighbors = [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
-var deck = [
+var _deck = [
 [1, 'O'], [2, 'O'], [3, 'O'], [4, 'O'],  [5, 'O'], 
 [1, 'G'], [2, 'G'], [3, 'G'], [4, 'G'],  [5, 'G'], 
 [1, 'V'], [2, 'V'], [3, 'V'], [4, 'V'],  [5, 'V'], 
 [9, 'M']
 ]
-
-var _deck = [
-[1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [1, 'G'],  [2, 'G'], 
-[1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [1, 'G'],  [2, 'G'], 
-[1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [1, 'G'],  [2, 'G'], 
-[1, 'O'], [2, 'O'], [3, 'O'], [1, 'O'],  [2, 'O'], 
-[1, 'G'], [2, 'G'], [3, 'G'], [1, 'G'],  [2, 'G'], ]
+var draw_size = 12
+var deck = [
+[1, 'O'], [1, 'O'], [1, 'O'], [1, 'O'],  [1, 'O'], 
+[1, 'G'], [1, 'G'], [1, 'G'], [1, 'G'],  [1, 'G'], 
+[1, 'V'], [1, 'V'], [1, 'V'], [1, 'V'],  [1, 'V']]
 var deck_copy = deck.duplicate(true)
 var deck_symbols = ['G', 'O', 'V', 'M']
 
@@ -50,6 +52,7 @@ func _ready():
 			card_positions[x].append([])
 
 func _process(_delta):
+	update()
 	if held_object:
 		if not gotten_neighbors:
 			gotten_neighbors = true
@@ -62,6 +65,13 @@ func _process(_delta):
 		held_object.position = get_local_mouse_position() - init_mouse_pose
 		shadow.position =  Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1) * card_size.x, 
 									clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1) * card_size.y)
+func _draw():
+	for i in range(len(card_positions)):
+		for j in range(len(card_positions[i])):
+			if card_positions[i][j]:
+				draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), symbol_colors[ card_positions[i][j].symbol])
+			else:
+				draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), symbol_colors[4])
 
 func _on_pickable_clicked(object):
 	if not held_object and object.symbol != FACTORY:
@@ -152,8 +162,11 @@ func calculate_possible_moves():
 					elif card.symbol == SPIRAL:
 						if card.symbol in [CIRCLE, VECTOR, SPIRAL]:
 							card.possible_moves.append(neighbor[1].table_pos)
-					elif card.symbol in [CIRCLE, VECTOR]:
+					elif card.symbol == CIRCLE:
 						if card.value > neighbor[1].value and neighbor[1].symbol != FACTORY:
+							card.possible_moves.append(neighbor[1].table_pos)
+					elif card.symbol == VECTOR:
+						if card.value < neighbor[1].value and neighbor[1].symbol != FACTORY:
 							card.possible_moves.append(neighbor[1].table_pos)
 
 func _on_update_board_pos(card):
@@ -173,11 +186,11 @@ func _on_switch_pos(card_a, card_b):
 	card_b.table_pos = old_table_pos
 	card_a.update_card('switch pos a')
 	card_b.update_card('switch pos b')
-	tween.interpolate_property(card_b, "position", card_b.table_pos * card_size, old_table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
+	tween.interpolate_property(card_b, "position", card_a.table_pos * card_size, card_b.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
 	tween.start()
 
-func draw_card(num_to_draw):
-	var total_to_draw = num_to_draw
+func draw_card(num_to_draw, delay:= 0):
+	var total_to_draw = num_to_draw + delay
 	for y in range(arr_size.y):
 		for x in range(arr_size.x):
 			if not card_positions[x][y]:
@@ -186,15 +199,15 @@ func draw_card(num_to_draw):
 						var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], Vector2(x, y))
 						new_card.position = Vector2(0, 183)
 						num_to_draw -= 1
-						$Tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05 * (total_to_draw - num_to_draw))
-						$Tween.start()
-						$Tween.interpolate_property(new_card, "z_index", num_to_draw*10, new_card.table_pos.y, 0.3, Tween.TRANS_LINEAR, Tween.EASE_OUT, 0.05 * (total_to_draw - num_to_draw))
-						$Tween.start()
+						tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05 * (total_to_draw - num_to_draw))
+						tween.start()
+						tween.interpolate_property(new_card, "z_index", num_to_draw*10, new_card.table_pos.y, 0.3, Tween.TRANS_LINEAR, Tween.EASE_OUT, 0.05 * (total_to_draw - num_to_draw))
+						tween.start()
 						deck.pop_front()
 					else:
 						deck = deck_copy.duplicate(true)
 						deck.shuffle()
-						draw_card(num_to_draw)
+						draw_card(num_to_draw, total_to_draw-num_to_draw)
 			else:
 				card_positions[x][y].update_card('card drawn')
 	num_to_draw = 0

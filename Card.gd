@@ -111,8 +111,8 @@ func take_turn(target):
 		emit_signal("switch_pos", self, target)
 		target.update_card('target take turn')
 		return true
-	elif symbol == VECTOR and value > target.value and target.symbol != FACTORY: 
-		target.value = value - target.value
+	elif symbol == VECTOR and value < target.value and target.symbol != FACTORY: 
+		target.value = target.value - value
 		emit_signal("switch_pos", self, target)
 		return true
 	update_card('turn failed, impossible move')
