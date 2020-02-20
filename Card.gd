@@ -94,7 +94,6 @@ func update_card(called_from := "null"):
 func take_turn(target):
 	table_pos = last_pos
 	if target and target.symbol == symbol:
-		print('here')
 		target.value += value
 		value = 0
 		update_card('take turn')
@@ -107,9 +106,10 @@ func take_turn(target):
 		return true
 	elif symbol == CIRCLE and value > target.value and target.symbol != FACTORY:
 		target.value += value
-		value = 0
 		emit_signal("switch_pos", self, target)
 		target.update_card('target take turn')
+		value = 0
+		update_card('circle take turn')
 		return true
 	elif symbol == VECTOR and value < target.value and target.symbol != FACTORY: 
 		target.value = target.value - value
