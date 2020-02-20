@@ -34,6 +34,8 @@ var symbol_colors = [
 
 
 func _ready():
+	if symbol == FACTORY:
+		$Clock.visible = true
 	last_pos = table_pos
 	$card.animation = str(randi() % 4)  # there are currently five card textures
 	update_card()
@@ -90,6 +92,7 @@ func update_card(called_from := "null"):
 	$symbol.animation = str(symbol)
 	$card_val.modulate = symbol_colors[symbol]
 	z_index = table_pos.y
+	$Clock.visible = symbol == FACTORY
 
 func take_turn(target):
 	table_pos = last_pos
@@ -99,19 +102,18 @@ func take_turn(target):
 		update_card('take turn')
 		emit_signal("target_take_turn", target)
 		return true
-	elif symbol == SPIRAL and target.symbol!= FACTORY:
+	elif symbol == SPIRAL:
 		target.symbol = [0, 2, 1, 3][target.symbol]
 		emit_signal("switch_pos", self, target)
 		value -= 1
 		return true
-	elif symbol == CIRCLE and value > target.value and target.symbol != FACTORY:
-		target.value += value
-		emit_signal("switch_pos", self, target)
+	elif symbol == CIRCLE:
+		target.value = min(9, value + target.value)
 		target.update_card('target take turn')
 		value = 0
 		update_card('circle take turn')
 		return true
-	elif symbol == VECTOR and value < target.value and target.symbol != FACTORY: 
+	elif symbol == VECTOR and value < target.value: 
 		target.value = target.value - value
 		emit_signal("switch_pos", self, target)
 		return true

@@ -14,6 +14,8 @@ var init_mouse_pose = Vector2(0, 0)
 var gotten_neighbors = false
 var current_neighbors = []
 
+var debug = false
+
 var turn_counter = 0
 var cur_turn = 0
 
@@ -26,6 +28,7 @@ var symbol_colors = [
 
 onready var tween = get_node("Tween")
 onready var shadow = get_node("Shadow")
+
 
 var possible_neighbors = [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
@@ -52,7 +55,6 @@ func _ready():
 			card_positions[x].append([])
 
 func _process(_delta):
-	update()
 	if held_object:
 		if not gotten_neighbors:
 			gotten_neighbors = true
@@ -66,12 +68,13 @@ func _process(_delta):
 		shadow.position =  Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1) * card_size.x, 
 									clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1) * card_size.y)
 func _draw():
-	for i in range(len(card_positions)):
-		for j in range(len(card_positions[i])):
-			if card_positions[i][j]:
-				draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), symbol_colors[ card_positions[i][j].symbol])
-			else:
-				draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), symbol_colors[4])
+	if debug:
+		for i in range(len(card_positions)):
+			for j in range(len(card_positions[i])):
+				if card_positions[i][j]:
+					draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), symbol_colors[ card_positions[i][j].symbol])
+				else:
+					draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), symbol_colors[4])
 
 func _on_pickable_clicked(object):
 	if not held_object and object.symbol != FACTORY:
@@ -152,22 +155,24 @@ func get_neighbors(card, spot:=Vector2(0, 0)) -> Array:
 func calculate_possible_moves():
 	for row in card_positions:
 		for card in row:
-			if card and card.symbol != FACTORY:
-				card.update_card()
-				var cur_n = get_neighbors(card)
-				card.possible_moves = []
-				for neighbor in cur_n[1]:
-					if neighbor[1].symbol == card.symbol:
-						card.possible_moves.append(neighbor[1].table_pos)
-					elif card.symbol == SPIRAL:
-						if card.symbol in [CIRCLE, VECTOR, SPIRAL]:
+			if card:
+				if card.symbol != FACTORY:
+					card.update_card()
+					var cur_n = get_neighbors(card)
+					card.possible_moves = []
+					for neighbor in cur_n[1]:
+						if neighbor[1].symbol == card.symbol:
 							card.possible_moves.append(neighbor[1].table_pos)
-					elif card.symbol == CIRCLE:
-						if card.value > neighbor[1].value and neighbor[1].symbol != FACTORY:
+						elif card.symbol == SPIRAL:
+							if card.symbol in [CIRCLE, VECTOR, SPIRAL]:
+								card.possible_moves.append(neighbor[1].table_pos)
+						elif card.symbol == CIRCLE:
 							card.possible_moves.append(neighbor[1].table_pos)
-					elif card.symbol == VECTOR:
-						if card.value < neighbor[1].value and neighbor[1].symbol != FACTORY:
-							card.possible_moves.append(neighbor[1].table_pos)
+						elif card.symbol == VECTOR:
+							if card.value < neighbor[1].value and neighbor[1].symbol != FACTORY:
+								card.possible_moves.append(neighbor[1].table_pos)
+				else:
+					card.get_node('Clock').animation = str((turn_counter) % 3)
 
 func _on_update_board_pos(card):
 	if card.value > 0:
@@ -199,9 +204,9 @@ func draw_card(num_to_draw, delay:= 0):
 						var new_card = create_card(deck_symbols.find(deck[0][1]),  deck[0][0], Vector2(x, y))
 						new_card.position = Vector2(0, 183)
 						num_to_draw -= 1
-						tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.05 * (total_to_draw - num_to_draw))
+						tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1 * (total_to_draw - num_to_draw))
 						tween.start()
-						tween.interpolate_property(new_card, "z_index", num_to_draw*10, new_card.table_pos.y, 0.3, Tween.TRANS_LINEAR, Tween.EASE_OUT, 0.05 * (total_to_draw - num_to_draw))
+						tween.interpolate_property(new_card, "z_index", num_to_draw*10, new_card.table_pos.y, 0.3, Tween.TRANS_LINEAR, Tween.EASE_OUT, 0.1 * (total_to_draw - num_to_draw))
 						tween.start()
 						deck.pop_front()
 					else:
@@ -218,3 +223,8 @@ func _on_deck_pressed():
 
 func target_take_turn(card):
 	card.target_take_turn(get_neighbors(card)[1])
+
+
+func _on_tween_completed(_object, key):
+	if key == ":position":
+		pass  # put audio here

@@ -23,3 +23,4 @@ centered = false
 offset = Vector2( -4, -4 )
 
 [node name="Tween" type="Tween" parent="."]
+[connection signal="tween_completed" from="Tween" to="." method="_on_tween_completed"]
