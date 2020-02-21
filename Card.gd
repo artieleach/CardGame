@@ -1,6 +1,6 @@
 extends Area2D
 
-enum {SPIRAL, CIRCLE, VECTOR, FACTORY}
+enum {SPIRAL, CIRCLE, VECTOR, FACTORY, POWER_UP}
 
 signal picked
 signal dropped
@@ -16,7 +16,7 @@ var held = false
 var floating = false
 var mouse_floating_pos = null
 # card data
-export(int) var symbol              #  0 is spiral, 1 is circle, 2 is vector, 3 is factory
+export(int) var symbol              #  0 is spiral, 1 is circle, 2 is vector, 3 is factory, 4 is a power up
 export(int) var value               #  1-6, used in game logic
 export(Vector2) var table_pos       #  position on the board
 export(int) var turn_created
@@ -24,13 +24,13 @@ export(int) var turn_created
 var last_pos = null
 var card_size = Vector2(32, 44)
 var possible_moves = []
-
 #helper data for coloring purposes
 var symbol_colors = [
 	Color(0.0, 0.0, 0.533),   # blue
 	Color(0.0, .235, 0.0),    # green
 	Color(.533, .0, .0),      # red
-	Color(.251, .251, .251)]  # grey
+	Color(.251, .251, .251),  # grey
+	Color(.0, .173, .361)]  # power_up blue
 
 
 func _ready():
@@ -48,11 +48,11 @@ func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func lp():
-	return '%d%s' % [value, ['G', 'O', 'V', 'M'][symbol]]
+	return '%d%s' % [value, ['G', 'O', 'V', 'M', 'P'][symbol]]
 
 func _input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
-		if event.button_index == BUTTON_LEFT and symbol != FACTORY:
+		if event.button_index == BUTTON_LEFT and symbol in [SPIRAL, CIRCLE, VECTOR, POWER_UP]:
 			if event.pressed:  # when the mouse is pressed, pickup
 				$CollisionShape2D.shape.extents = Vector2(160, 215)
 				emit_signal('picked', self)
@@ -61,7 +61,7 @@ func _input_event(_viewport, event, _shape_idx):
 				$CollisionShape2D.shape.extents = Vector2(16, 21.5)
 				emit_signal('dropped', self)
 		elif event.button_index == BUTTON_RIGHT and event.pressed:
-			if symbol < 3:
+			if symbol < 4:
 				symbol += 1
 			else:
 				symbol = 0
@@ -132,6 +132,20 @@ func factory_take_turn(neighbors, living_neighbors):
 			value += 1
 		neighbor[1].update_card('factory take turn')
 
+func power_up_take_turn(target, card_positions):
+	if $symbol.frame == 0:
+		var possible_spots = []
+		for x in range(arr_size.x):
+			for y in range(arr_size.y):
+				possible_spots.append(Vector2(x, y))
+		possible_spots.shuffle()
+		for row in card_positions:
+			for card in row:
+				if card:
+					card.table_pos = possible_spots[0]
+					possible_spots.pop_front()
+					card.update_card()
+
 func target_take_turn(living_neighbors):
 	var living_val = value
 	value = 0
@@ -140,8 +154,9 @@ func target_take_turn(living_neighbors):
 		emit_signal("draw_card", living_val)
 	if symbol == SPIRAL:
 		for neighbor in living_neighbors:
-			neighbor[1].symbol = [0, 2, 1, 3][neighbor[1].symbol]
+			neighbor[1].symbol = [0, 2, 1, 3, 4][neighbor[1].symbol]
 			neighbor[1].update_card('sworlt')
+			emit_signal("create_card", 4, 1, table_pos)
 	if symbol == VECTOR:
 		for neighbor in living_neighbors:
 			neighbor[1].value -= living_val

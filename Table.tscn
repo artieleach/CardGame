@@ -6,8 +6,8 @@
 [ext_resource path="res://cards/shadow.png" type="Texture" id=5]
 
 [node name="Table" type="TextureRect"]
-margin_right = -0.0160065
-margin_bottom = 0.0559845
+margin_right = 128.0
+margin_bottom = 179.0
 mouse_filter = 2
 texture = ExtResource( 2 )
 script = ExtResource( 3 )

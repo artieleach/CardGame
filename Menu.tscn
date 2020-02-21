@@ -46,13 +46,12 @@ mouse_filter = 2
 size_flags_vertical = 3
 
 [node name="Table" parent="Panel/MarginContainer/CenterContainer/VBoxContainer" instance=ExtResource( 1 )]
-margin_right = 128.0
-margin_bottom = 179.0
 
 [node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer"]
 margin_top = 183.0
 margin_right = 128.0
 margin_bottom = 231.0
+mouse_filter = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer/CenterContainer/VBoxContainer/MarginContainer"]
 margin_right = 128.0
