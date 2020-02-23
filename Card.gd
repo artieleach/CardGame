@@ -10,6 +10,7 @@ signal draw_card
 signal create_card
 signal target_take_turn
 
+var num_of_powerups = 4
 var arr_size = Vector2(4, 4)
 
 var held = false
@@ -20,9 +21,10 @@ export(int) var symbol              #  0 is spiral, 1 is circle, 2 is vector, 3 
 export(int) var value               #  1-6, used in game logic
 export(Vector2) var table_pos       #  position on the board
 export(int) var turn_created
+export(int) var power_up_value
 #local data
 var last_pos = null
-var card_size = Vector2(32, 44)
+var card_size = Vector2(32, 43)
 var possible_moves = []
 #helper data for coloring purposes
 var symbol_colors = [
@@ -39,6 +41,8 @@ func _ready():
 	last_pos = table_pos
 	$card.animation = str(randi() % 4)  # there are currently five card textures
 	update_card()
+	if symbol == POWER_UP:
+		$symbol.frame = power_up_value
 
 func _process(_delta):
 	if held or floating:
@@ -48,7 +52,7 @@ func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func lp():
-	return '%d%s' % [value, ['G', 'O', 'V', 'M', 'P'][symbol]]
+	return '%d%d' % [value, symbol]
 
 func _input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
@@ -66,11 +70,17 @@ func _input_event(_viewport, event, _shape_idx):
 			else:
 				symbol = 0
 		elif event.button_index == BUTTON_WHEEL_UP and event.pressed:
-			if value < 9:
-				value += 1
+			if symbol != POWER_UP:
+				if value < 9:
+					value += 1
+			else:
+				power_up_value += 1
 		elif event.button_index == BUTTON_WHEEL_DOWN and event.pressed:
-			if value > 0:
-				value -= 1
+			if symbol != POWER_UP:
+				if value > 0:
+					value -= 1
+			else:
+				power_up_value -= 1
 
 func pickup():
 	if not held:
@@ -93,7 +103,14 @@ func update_card(called_from := "null"):
 	$card_val.modulate = symbol_colors[symbol]
 	z_index = table_pos.y
 	$Clock.visible = symbol == FACTORY
+	if symbol == POWER_UP:
+		$symbol.frame = power_up_value
 
+
+func get_in_place():
+	$Tween.interpolate_property(self, "position", position, table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
+	$Tween.start()
+	
 func take_turn(target):
 	table_pos = last_pos
 	if target and target.symbol == symbol:
@@ -103,7 +120,7 @@ func take_turn(target):
 		emit_signal("target_take_turn", target)
 		return true
 	elif symbol == SPIRAL:
-		target.symbol = [0, 2, 1, 3][target.symbol]
+		target.symbol = [0, 2, 1, 3, 4][target.symbol]
 		emit_signal("switch_pos", self, target)
 		value -= 1
 		return true
@@ -132,20 +149,6 @@ func factory_take_turn(neighbors, living_neighbors):
 			value += 1
 		neighbor[1].update_card('factory take turn')
 
-func power_up_take_turn(target, card_positions):
-	if $symbol.frame == 0:
-		var possible_spots = []
-		for x in range(arr_size.x):
-			for y in range(arr_size.y):
-				possible_spots.append(Vector2(x, y))
-		possible_spots.shuffle()
-		for row in card_positions:
-			for card in row:
-				if card:
-					card.table_pos = possible_spots[0]
-					possible_spots.pop_front()
-					card.update_card()
-
 func target_take_turn(living_neighbors):
 	var living_val = value
 	value = 0
@@ -156,7 +159,7 @@ func target_take_turn(living_neighbors):
 		for neighbor in living_neighbors:
 			neighbor[1].symbol = [0, 2, 1, 3, 4][neighbor[1].symbol]
 			neighbor[1].update_card('sworlt')
-			emit_signal("create_card", 4, 1, table_pos)
+			emit_signal("create_card", 4, 1, table_pos, randi() % num_of_powerups)
 	if symbol == VECTOR:
 		for neighbor in living_neighbors:
 			neighbor[1].value -= living_val

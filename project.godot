@@ -28,6 +28,8 @@ gdscript/warnings/unused_variable=false
 
 window/size/width=144
 window/size/height=256
+window/size/test_width=432
+window/size/test_height=768
 window/handheld/orientation="portrait"
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
