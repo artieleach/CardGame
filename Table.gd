@@ -14,7 +14,7 @@ var init_mouse_pose = Vector2(0, 0)
 var gotten_neighbors = false
 var current_neighbors = []
 
-var debug = true
+var debug = false
 
 var turn_counter = 0
 var mouse_on_hand = false
@@ -56,10 +56,10 @@ func _ready():
 
 func save_game():
 	var output = ['', '']
-	for row in card_positions:
-		for card in row:
-			if card:
-				output[0] += card.lp()
+	for i in range(len(card_positions)):
+		for j in range(len(card_positions[i])):
+			if card_positions[i][j]: 
+				output[0] += card_positions[i][j].lp()
 			else:
 				output[0] += '00'
 	for card in deck:
@@ -75,13 +75,13 @@ func load_game():
 	var f = File.new()
 	if not f.file_exists("user://savegame.save"):
 		draw_card(16)
-		return # Error! We don't have a save to load.
+		save_game()
+		return
 	var loaded_data = []
 	f.open("user://savegame.save", File.READ)
 	loaded_data.append(f.get_line().bigrams())
 	loaded_data.append(f.get_line().bigrams())
 	f.close()
-	deck = []
 	for card in range(len(loaded_data[0])):
 		if card % 2 == 0:
 			deck.append(loaded_data[0][card])
@@ -91,7 +91,6 @@ func load_game():
 			deck.append(loaded_data[1][card])
 
 func _process(_delta):
-	update()
 	if held_object:
 		if not gotten_neighbors:
 			gotten_neighbors = true
@@ -114,6 +113,7 @@ func _draw():
 					draw_rect( Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), Color(0, 0, 0))
 
 func _on_pickable_clicked(object):
+	save_game()
 	if not held_object and object.symbol in [SPIRAL, CIRCLE, VECTOR, POWER_UP]:
 		shadow.visible = true
 		held_object = object
@@ -122,7 +122,6 @@ func _on_pickable_clicked(object):
 
 func deck_to_game_deck():
 	var card_strings = []
-		
 
 func _on_pickable_dropped(object):
 	var turn_is_valid = false
@@ -163,7 +162,6 @@ func _on_pickable_dropped(object):
 						var neighborhood = get_neighbors(card)
 						card.factory_take_turn(neighborhood[0], neighborhood[1])
 	calculate_possible_moves()
-	save_game()
 
 func get_in_place(card):
 	tween.interpolate_property(card, "position", card.position, card.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
@@ -258,8 +256,8 @@ func _on_switch_pos(card_a, card_b):
 
 func draw_card(num_to_draw, delay:= 0):
 	var total_to_draw = num_to_draw + delay
-	for y in range(arr_size.y):
-		for x in range(arr_size.x):
+	for x in range(arr_size.x):
+		for y in range(arr_size.y):
 			if not card_positions[x][y]:
 				if num_to_draw > 0:
 					if deck:

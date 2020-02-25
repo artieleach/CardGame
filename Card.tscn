@@ -203,18 +203,10 @@ frames = SubResource( 3 )
 animation = "4"
 offset = Vector2( 16, 24 )
 
-[node name="card_val" type="Node2D" parent="."]
-
-[node name="value_0" type="AnimatedSprite" parent="card_val"]
+[node name="value" type="AnimatedSprite" parent="."]
 frames = SubResource( 4 )
 animation = "9"
 offset = Vector2( 5, 5 )
-
-[node name="value_1" type="AnimatedSprite" parent="card_val"]
-visible = false
-frames = SubResource( 4 )
-animation = "9"
-offset = Vector2( 27, 38 )
 
 [node name="symbol" type="AnimatedSprite" parent="."]
 frames = SubResource( 5 )

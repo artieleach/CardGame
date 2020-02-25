@@ -52,7 +52,10 @@ func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func lp():
-	return '%d%d' % [value, symbol]
+	if symbol != POWER_UP:
+		return '%d%d' % [value, symbol]
+	else:
+		return '%d%d' % [value, symbol+power_up_value]
 
 func _input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
@@ -96,11 +99,10 @@ func update_card(called_from := "null"):
 	if called_from != "null":
 		printt(self, lp(), called_from)
 	if value > 0 and 10 > value:
-		$card_val/value_0.animation = str(value)
-		$card_val/value_1.animation = str(value)
+		$value.animation = str(value)
 	emit_signal('update_board_pos', self)
 	$symbol.animation = str(symbol)
-	$card_val.modulate = symbol_colors[symbol]
+	$value.modulate = symbol_colors[symbol]
 	z_index = table_pos.y
 	$Clock.visible = symbol == FACTORY
 	if symbol == POWER_UP:
@@ -119,21 +121,24 @@ func take_turn(target):
 		update_card('take turn')
 		emit_signal("target_take_turn", target)
 		return true
-	elif symbol == SPIRAL:
-		target.symbol = [0, 2, 1, 3, 4][target.symbol]
-		emit_signal("switch_pos", self, target)
-		value -= 1
-		return true
-	elif symbol == CIRCLE:
-		target.value = min(9, value + target.value)
-		target.update_card('target take turn')
-		value = 0
-		update_card('circle take turn')
-		return true
-	elif symbol == VECTOR and value < target.value: 
-		target.value = target.value - value
-		emit_signal("switch_pos", self, target)
-		return true
+	match symbol:
+		SPIRAL:
+			target.symbol = [0, 2, 1, 3, 4][target.symbol]
+			emit_signal("switch_pos", self, target)
+			value -= 1
+			return true
+	match symbol:
+		CIRCLE:
+			target.value = min(9, value + target.value)
+			target.update_card('target take turn')
+			value = 0
+			update_card('circle take turn')
+			return true
+	match symbol:
+		VECTOR:
+			target.value = target.value - value
+			emit_signal("switch_pos", self, target)
+			return true
 	update_card('turn failed, impossible move')
 	return false
 
@@ -153,14 +158,15 @@ func target_take_turn(living_neighbors):
 	var living_val = value
 	value = 0
 	emit_signal('update_board_pos', self)
-	if symbol == CIRCLE:
-		emit_signal("draw_card", living_val)
-	if symbol == SPIRAL:
-		for neighbor in living_neighbors:
-			neighbor[1].symbol = [0, 2, 1, 3, 4][neighbor[1].symbol]
-			neighbor[1].update_card('sworlt')
-			emit_signal("create_card", 4, 1, table_pos, randi() % num_of_powerups)
-	if symbol == VECTOR:
-		for neighbor in living_neighbors:
-			neighbor[1].value -= living_val
-			neighbor[1].update_card('vector take turn')
+	match symbol:
+		CIRCLE:
+			emit_signal("draw_card", living_val)
+		SPIRAL:
+			for neighbor in living_neighbors:
+				neighbor[1].symbol = [0, 2, 1, 3, 4][neighbor[1].symbol]
+				neighbor[1].update_card('sworlt')
+				emit_signal("create_card", 4, 1, table_pos, randi() % num_of_powerups)
+		VECTOR:
+			for neighbor in living_neighbors:
+				neighbor[1].value -= living_val
+				neighbor[1].update_card('vector take turn')
