@@ -1,17 +1,17 @@
-[gd_scene load_steps=36 format=2]
+[gd_scene load_steps=46 format=2]
 
 [ext_resource path="res://cards/values/0.png" type="Texture" id=1]
 [ext_resource path="res://Card.gd" type="Script" id=2]
 [ext_resource path="res://particle.png" type="Texture" id=3]
-[ext_resource path="res://cards/backs/big_4.png" type="Texture" id=4]
-[ext_resource path="res://cards/backs/big_2.png" type="Texture" id=5]
-[ext_resource path="res://cards/backs/big_1.png" type="Texture" id=6]
-[ext_resource path="res://cards/backs/big_3.png" type="Texture" id=7]
-[ext_resource path="res://cards/backs/big_0.png" type="Texture" id=8]
-[ext_resource path="res://cards/symbols/symbol_2_big.png" type="Texture" id=9]
-[ext_resource path="res://cards/symbols/symbol_1_big.png" type="Texture" id=10]
-[ext_resource path="res://cards/symbols/symbol_3_big.png" type="Texture" id=11]
-[ext_resource path="res://cards/symbols/symbol_0_big.png" type="Texture" id=12]
+[ext_resource path="res://cards/backs/back_4.png" type="Texture" id=4]
+[ext_resource path="res://cards/backs/back_2.png" type="Texture" id=5]
+[ext_resource path="res://cards/backs/back_1.png" type="Texture" id=6]
+[ext_resource path="res://cards/backs/back_3.png" type="Texture" id=7]
+[ext_resource path="res://cards/backs/back_0.png" type="Texture" id=8]
+[ext_resource path="res://cards/symbols/symbol_2.png" type="Texture" id=9]
+[ext_resource path="res://cards/symbols/symbol_1.png" type="Texture" id=10]
+[ext_resource path="res://cards/symbols/symbol_3.png" type="Texture" id=11]
+[ext_resource path="res://cards/symbols/symbol_0.png" type="Texture" id=12]
 [ext_resource path="res://cards/values/4.png" type="Texture" id=13]
 [ext_resource path="res://cards/values/2.png" type="Texture" id=14]
 [ext_resource path="res://cards/values/1.png" type="Texture" id=15]
@@ -19,15 +19,25 @@
 [ext_resource path="res://cards/values/5.png" type="Texture" id=17]
 [ext_resource path="res://cards/values/3.png" type="Texture" id=18]
 [ext_resource path="res://cards/symbols/p_0.png" type="Texture" id=19]
-[ext_resource path="res://cards/factory_clock_0.png" type="Texture" id=20]
-[ext_resource path="res://cards/factory_clock_1.png" type="Texture" id=21]
+[ext_resource path="res://cards/clock/factory_clock_2.png" type="Texture" id=20]
+[ext_resource path="res://cards/clock/factory_clock_0.png" type="Texture" id=21]
 [ext_resource path="res://cards/values/8.png" type="Texture" id=22]
 [ext_resource path="res://cards/values/7.png" type="Texture" id=23]
 [ext_resource path="res://cards/values/9.png" type="Texture" id=24]
-[ext_resource path="res://cards/factory_clock_2.png" type="Texture" id=25]
+[ext_resource path="res://cards/clock/factory_clock_1.png" type="Texture" id=25]
 [ext_resource path="res://cards/symbols/p_1.png" type="Texture" id=26]
 [ext_resource path="res://cards/symbols/p_2.png" type="Texture" id=27]
 [ext_resource path="res://cards/symbols/p_3.png" type="Texture" id=28]
+[ext_resource path="res://cards/symbols/p_4.png" type="Texture" id=29]
+[ext_resource path="res://cards/symbols/symbol_3_hl.png" type="Texture" id=30]
+[ext_resource path="res://cards/symbols/symbol_1_hl.png" type="Texture" id=31]
+[ext_resource path="res://cards/symbols/symbol_0_hl.png" type="Texture" id=32]
+[ext_resource path="res://cards/symbols/symbol_2_hl.png" type="Texture" id=33]
+[ext_resource path="res://cards/backs/back_4_hl.png" type="Texture" id=34]
+[ext_resource path="res://cards/backs/back_3_hl.png" type="Texture" id=35]
+[ext_resource path="res://cards/backs/back_0_hl.png" type="Texture" id=36]
+[ext_resource path="res://cards/backs/back_2_hl.png" type="Texture" id=37]
+[ext_resource path="res://cards/backs/back_1_hl.png" type="Texture" id=38]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 16, 21.5 )
@@ -37,27 +47,27 @@ _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
 
 [sub_resource type="SpriteFrames" id=3]
 animations = [ {
-"frames": [ ExtResource( 4 ) ],
+"frames": [ ExtResource( 4 ), ExtResource( 34 ) ],
 "loop": true,
 "name": "4",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 5 ) ],
+"frames": [ ExtResource( 5 ), ExtResource( 37 ) ],
 "loop": true,
 "name": "2",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 6 ) ],
+"frames": [ ExtResource( 6 ), ExtResource( 38 ) ],
 "loop": true,
 "name": "1",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 7 ) ],
+"frames": [ ExtResource( 7 ), ExtResource( 35 ) ],
 "loop": true,
 "name": "3",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 8 ) ],
+"frames": [ ExtResource( 8 ), ExtResource( 36 ) ],
 "loop": true,
 "name": "0",
 "speed": 5.0
@@ -118,27 +128,27 @@ animations = [ {
 
 [sub_resource type="SpriteFrames" id=5]
 animations = [ {
-"frames": [ ExtResource( 19 ), ExtResource( 26 ), ExtResource( 27 ), ExtResource( 28 ) ],
+"frames": [ ExtResource( 19 ), ExtResource( 26 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
 "loop": true,
 "name": "4",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 9 ) ],
+"frames": [ ExtResource( 9 ), ExtResource( 33 ) ],
 "loop": true,
 "name": "2",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 10 ) ],
+"frames": [ ExtResource( 10 ), ExtResource( 31 ) ],
 "loop": true,
 "name": "1",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 11 ) ],
+"frames": [ ExtResource( 11 ), ExtResource( 30 ) ],
 "loop": true,
 "name": "3",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 12 ) ],
+"frames": [ ExtResource( 12 ), ExtResource( 32 ) ],
 "loop": true,
 "name": "0",
 "speed": 5.0
@@ -150,17 +160,17 @@ colors = PoolColorArray( 0.815686, 0.815686, 0.313726, 1, 0.533333, 0, 0, 1, 0, 
 
 [sub_resource type="SpriteFrames" id=7]
 animations = [ {
-"frames": [ ExtResource( 20 ) ],
+"frames": [ ExtResource( 21 ) ],
 "loop": true,
 "name": "2",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 21 ) ],
+"frames": [ ExtResource( 25 ) ],
 "loop": true,
 "name": "1",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 25 ) ],
+"frames": [ ExtResource( 20 ) ],
 "loop": true,
 "name": "0",
 "speed": 5.0
@@ -210,7 +220,7 @@ offset = Vector2( 5, 5 )
 
 [node name="symbol" type="AnimatedSprite" parent="."]
 frames = SubResource( 5 )
-animation = "4"
+animation = "1"
 offset = Vector2( 16, 24 )
 
 [node name="FlameParticles" type="CPUParticles2D" parent="."]
@@ -219,6 +229,7 @@ scale = Vector2( 5, 5 )
 emitting = false
 amount = 60
 lifetime = 0.5
+one_shot = true
 preprocess = 0.1
 speed_scale = 2.0
 explosiveness = 0.2

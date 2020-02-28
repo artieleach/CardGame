@@ -4,7 +4,7 @@ export (PackedScene) var Card
 
 signal game_over
 
-var card_size =Vector2(32, 43)  # the tile is _actually_ 36 high, but the bottom 4 are a different face,  so i dont count them
+var card_size =Vector2(33, 44)  # the tile is _actually_ 36 high, but the bottom 4 are a different face,  so i dont count them
 enum {SPIRAL, CIRCLE, VECTOR, FACTORY, POWER_UP}
 var held_object = null
 
@@ -15,6 +15,8 @@ var gotten_neighbors = false
 var current_neighbors = []
 
 var debug = false
+
+var are_ya_sure = false
 
 var turn_counter = 0
 var mouse_on_hand = false
@@ -55,7 +57,7 @@ func _ready():
 	calculate_possible_moves()
 
 func save_game():
-	var output = ['', '']
+	var output = ['']
 	for i in range(len(card_positions)):
 		for j in range(len(card_positions[i])):
 			if card_positions[i][j]: 
@@ -63,9 +65,9 @@ func save_game():
 			else:
 				output[0] += '00'
 	for card in deck:
-		output[1] += card
+		output[0] += card
+	output.append(str(cur_turn))
 	var save_file = File.new()
-	# save_file.open("user://savegame.save", File.WRITE)
 	save_file.open("user://savegame.save", File.WRITE)
 	for i in output:
 		save_file.store_line(i)
@@ -74,21 +76,22 @@ func save_game():
 func load_game():
 	var f = File.new()
 	if not f.file_exists("user://savegame.save"):
-		draw_card(16)
+		draw_card(arr_size.x * arr_size.y)
 		save_game()
 		return
 	var loaded_data = []
 	f.open("user://savegame.save", File.READ)
 	loaded_data.append(f.get_line().bigrams())
-	loaded_data.append(f.get_line().bigrams())
+	loaded_data.append(f.get_line())
+	loaded_data.append(f.get_line())
 	f.close()
+	deck = []
 	for card in range(len(loaded_data[0])):
 		if card % 2 == 0:
 			deck.append(loaded_data[0][card])
 	draw_card(len(deck))
-	for card in range(len(loaded_data[1])):
-		if card % 2 == 0:
-			deck.append(loaded_data[1][card])
+	cur_turn = int(loaded_data[1])
+	turn_counter = int(loaded_data[1])
 
 func _process(_delta):
 	if held_object:
@@ -99,10 +102,11 @@ func _process(_delta):
 			current_neighbors = get_neighbors(held_object)[1]
 			for neighbor in current_neighbors:
 				if neighbor[1].table_pos in held_object.possible_moves:
-					neighbor[1].modulate = Color(1.2, 1.2, 1.2)
+					neighbor[1].highlight_card(true)
 		held_object.position = get_local_mouse_position() - init_mouse_pose
 		shadow.position =  Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1) * card_size.x, 
 									clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1) * card_size.y)
+
 func _draw():
 	if debug:
 		for i in range(len(card_positions)):
@@ -114,14 +118,12 @@ func _draw():
 
 func _on_pickable_clicked(object):
 	save_game()
+	calculate_possible_moves()
 	if not held_object and object.symbol in [SPIRAL, CIRCLE, VECTOR, POWER_UP]:
 		shadow.visible = true
 		held_object = object
 		card_positions[held_object.table_pos.x][held_object.table_pos.y] = []
 		held_object.pickup()
-
-func deck_to_game_deck():
-	var card_strings = []
 
 func _on_pickable_dropped(object):
 	var turn_is_valid = false
@@ -130,7 +132,7 @@ func _on_pickable_dropped(object):
 	if held_object and held_object == object:
 		current_neighbors = get_neighbors(held_object, held_object.last_pos)[1]
 		for neighbor in current_neighbors:
-			neighbor[1].modulate = Color(1, 1, 1)
+			neighbor[1].highlight_card(false)
 		var neighbors = get_neighbors(held_object)
 		held_object.table_pos = Vector2(clamp(int((held_object.position.x + card_size.x / 2) / card_size.x), 0, arr_size.x - 1), 
 										clamp(int((held_object.position.y + card_size.y / 2) / card_size.y), 0, arr_size.y - 1))
@@ -161,7 +163,7 @@ func _on_pickable_dropped(object):
 					if card and card.symbol == FACTORY and turn_counter > card.turn_created + 1 and (turn_counter + card.turn_created) % 3 == 0:
 						var neighborhood = get_neighbors(card)
 						card.factory_take_turn(neighborhood[0], neighborhood[1])
-	calculate_possible_moves()
+	
 
 func get_in_place(card):
 	tween.interpolate_property(card, "position", card.position, card.table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
@@ -220,16 +222,19 @@ func calculate_possible_moves():
 							if card.value < neighbor[1].value and neighbor[1].symbol in [SPIRAL, CIRCLE, VECTOR]:
 								card.possible_moves.append(neighbor[1].table_pos)
 						elif card.symbol == POWER_UP:
-							if card.get_node('symbol').frame == 0:
-								card.possible_moves.append(neighbor[1].table_pos)
-							if card.get_node('symbol').frame == 1:
-								if neighbor[1].symbol == CIRCLE:
+							match card.get_node('symbol').frame:
+								0:
 									card.possible_moves.append(neighbor[1].table_pos)
-							if card.get_node('symbol').frame == 2:
-								if neighbor[1].symbol == FACTORY:
-									card.possible_moves.append(neighbor[1].table_pos)
-							if card.get_node('symbol').frame == 3:
-								if neighbor[1].symbol == SPIRAL:
+								1:
+									if neighbor[1].symbol == CIRCLE:
+										card.possible_moves.append(neighbor[1].table_pos)
+								2:
+									if neighbor[1].symbol == FACTORY:
+										card.possible_moves.append(neighbor[1].table_pos)
+								3:
+									if neighbor[1].symbol == SPIRAL:
+										card.possible_moves.append(neighbor[1].table_pos)
+								4:
 									card.possible_moves.append(neighbor[1].table_pos)
 				else:
 					card.get_node('Clock').animation = str((turn_counter) % 3)
@@ -261,7 +266,11 @@ func draw_card(num_to_draw, delay:= 0):
 			if not card_positions[x][y]:
 				if num_to_draw > 0:
 					if deck:
-						var new_card = create_card(int(deck[0][1]), int(deck[0][0]), Vector2(x, y))
+						var new_card = null
+						if int(deck[0][1]) <= FACTORY:
+							new_card = create_card(int(deck[0][1]), int(deck[0][0]), Vector2(x, y))
+						else:
+							new_card = create_card(int(4), int(deck[0][0]), Vector2(x, y), int(deck[0][1]) - 4)
 						new_card.position = Vector2(0, 183)
 						num_to_draw -= 1
 						tween.interpolate_property(new_card, "position", Vector2(0, 188), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1 * (total_to_draw - num_to_draw))
@@ -323,8 +332,13 @@ func power_up_take_turn(power_up_card, target):
 						if not spot[1]:
 							create_card(SPIRAL, power_up_value, spot[0]) 
 							break
+		return true
 	elif cur_power == 4:
-		pass
+		deck.push_front(target.lp())
+		target.z_index = 64
+		tween.interpolate_property(target, "position", target.position, Vector2(0, 188), 0.3, Tween.TRANS_LINEAR, Tween.EASE_OUT)
+		tween.start()
+		return true
 	return false
 
 func target_take_turn(card):
@@ -337,9 +351,20 @@ func _on_deck_pressed():
 			if card:
 				can_draw = false
 	if can_draw:
-		draw_card(16)
+		draw_card(arr_size.x * arr_size.y)
 		calculate_possible_moves()
-
+	else:
+		if not are_ya_sure:
+			are_ya_sure = true
+		else:
+			for row in card_positions:
+				for card in row:
+					if card:
+						card.value = 0
+						card.update_card()
+			are_ya_sure = false
+			deck = []
+			_on_deck_pressed()
 
 func _on_tween_completed(_object, key):
 	if key == ":position":

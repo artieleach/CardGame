@@ -10,34 +10,35 @@ signal draw_card
 signal create_card
 signal target_take_turn
 
-var num_of_powerups = 4
+var num_of_powerups = 5
 var arr_size = Vector2(4, 4)
+var card_size = Vector2(33, 44)
 
-var held = false
-var floating = false
-var mouse_floating_pos = null
 # card data
 export(int) var symbol              #  0 is spiral, 1 is circle, 2 is vector, 3 is factory, 4 is a power up
 export(int) var value               #  1-6, used in game logic
 export(Vector2) var table_pos       #  position on the board
+export(int) var power_up_value      #  
 export(int) var turn_created
-export(int) var power_up_value
+
 #local data
 var last_pos = null
-var card_size = Vector2(32, 43)
 var possible_moves = []
-#helper data for coloring purposes
+var held = false
+var floating = false
+var mouse_floating_pos = null
+
+#helper data for coloring
 var symbol_colors = [
 	Color(0.0, 0.0, 0.533),   # blue
 	Color(0.0, .235, 0.0),    # green
 	Color(.533, .0, .0),      # red
 	Color(.251, .251, .251),  # grey
-	Color(.0, .173, .361)]  # power_up blue
+	Color(.0, .173, .361),    # teal
+	]
 
 
 func _ready():
-	if symbol == FACTORY:
-		$Clock.visible = true
 	last_pos = table_pos
 	$card.animation = str(randi() % 4)  # there are currently five card textures
 	update_card()
@@ -52,38 +53,18 @@ func ps():  # Print String
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func lp():
-	if symbol != POWER_UP:
-		return '%d%d' % [value, symbol]
-	else:
-		return '%d%d' % [value, symbol+power_up_value]
+	return '%d%d' % [clamp(value, 0, 9), clamp(symbol+power_up_value, 0, 9)]
 
 func _input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_LEFT and symbol in [SPIRAL, CIRCLE, VECTOR, POWER_UP]:
 			if event.pressed:  # when the mouse is pressed, pickup
-				$CollisionShape2D.shape.extents = Vector2(160, 215)
+				$CollisionShape2D.shape.extents = Vector2(card_size.x *5, card_size.y * 5)
 				emit_signal('picked', self)
 				held = true
 			else:  # when released, drop
-				$CollisionShape2D.shape.extents = Vector2(16, 21.5)
+				$CollisionShape2D.shape.extents = Vector2(card_size.x / 2, card_size.y / 2)
 				emit_signal('dropped', self)
-		elif event.button_index == BUTTON_RIGHT and event.pressed:
-			if symbol < 4:
-				symbol += 1
-			else:
-				symbol = 0
-		elif event.button_index == BUTTON_WHEEL_UP and event.pressed:
-			if symbol != POWER_UP:
-				if value < 9:
-					value += 1
-			else:
-				power_up_value += 1
-		elif event.button_index == BUTTON_WHEEL_DOWN and event.pressed:
-			if symbol != POWER_UP:
-				if value > 0:
-					value -= 1
-			else:
-				power_up_value -= 1
 
 func pickup():
 	if not held:
@@ -98,8 +79,8 @@ func drop():
 func update_card(called_from := "null"):
 	if called_from != "null":
 		printt(self, lp(), called_from)
-	if value > 0 and 10 > value:
-		$value.animation = str(value)
+	value = clamp(value, 0, 9)
+	$value.animation = str(value)
 	emit_signal('update_board_pos', self)
 	$symbol.animation = str(symbol)
 	$value.modulate = symbol_colors[symbol]
@@ -107,7 +88,12 @@ func update_card(called_from := "null"):
 	$Clock.visible = symbol == FACTORY
 	if symbol == POWER_UP:
 		$symbol.frame = power_up_value
+	else:
+		power_up_value = 0
 
+func highlight_card(turn_on):
+	$symbol.frame = int(turn_on)
+	$card.frame = int(turn_on)
 
 func get_in_place():
 	$Tween.interpolate_property(self, "position", position, table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
@@ -115,26 +101,24 @@ func get_in_place():
 	
 func take_turn(target):
 	table_pos = last_pos
-	if target and target.symbol == symbol:
-		target.value += value
-		value = 0
-		update_card('take turn')
-		emit_signal("target_take_turn", target)
-		return true
 	match symbol:
+		target.symbol:
+			target.value = min(9, value + target.value)
+			value = 0
+			update_card('take turn')
+			emit_signal("target_take_turn", target)
+			return true
 		SPIRAL:
 			target.symbol = [0, 2, 1, 3, 4][target.symbol]
 			emit_signal("switch_pos", self, target)
 			value -= 1
 			return true
-	match symbol:
 		CIRCLE:
 			target.value = min(9, value + target.value)
 			target.update_card('target take turn')
 			value = 0
 			update_card('circle take turn')
 			return true
-	match symbol:
 		VECTOR:
 			target.value = target.value - value
 			emit_signal("switch_pos", self, target)
@@ -170,3 +154,7 @@ func target_take_turn(living_neighbors):
 			for neighbor in living_neighbors:
 				neighbor[1].value -= living_val
 				neighbor[1].update_card('vector take turn')
+				var flame_dir = table_pos - neighbor[1].table_pos
+				$FlameParticles.emitting = true
+				$FlameParticles.direction = flame_dir
+				

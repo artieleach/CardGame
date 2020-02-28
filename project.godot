@@ -8,10 +8,19 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Node",
+"class": "Admob",
+"language": "GDScript",
+"path": "res://admob-lib/admob.gd"
+} ]
 _global_script_class_icons={
-
+"Admob": "res://admob-lib/icon.png"
 }
+
+[android]
+
+modules="org/godotengine/godot/GodotAdMob"
 
 [application]
 
@@ -22,14 +31,14 @@ config/icon="res://icon.png"
 
 [debug]
 
+settings/fps/force_fps=144
 gdscript/warnings/unused_variable=false
 
 [display]
 
 window/size/width=144
 window/size/height=256
-window/size/test_width=432
-window/size/test_height=768
+window/vsync/use_vsync=false
 window/handheld/orientation="portrait"
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
