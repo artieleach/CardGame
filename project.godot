@@ -38,6 +38,8 @@ gdscript/warnings/unused_variable=false
 
 window/size/width=144
 window/size/height=256
+window/size/test_width=576
+window/size/test_height=1024
 window/vsync/use_vsync=false
 window/handheld/orientation="portrait"
 window/stretch/mode="viewport"

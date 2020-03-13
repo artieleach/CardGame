@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=2]
+[gd_scene load_steps=42 format=2]
 
 [ext_resource path="res://cards/values/0.png" type="Texture" id=1]
 [ext_resource path="res://Card.gd" type="Script" id=2]
@@ -29,45 +29,21 @@
 [ext_resource path="res://cards/symbols/p_2.png" type="Texture" id=27]
 [ext_resource path="res://cards/symbols/p_3.png" type="Texture" id=28]
 [ext_resource path="res://cards/symbols/p_4.png" type="Texture" id=29]
-[ext_resource path="res://cards/symbols/symbol_3_hl.png" type="Texture" id=30]
-[ext_resource path="res://cards/symbols/symbol_1_hl.png" type="Texture" id=31]
-[ext_resource path="res://cards/symbols/symbol_0_hl.png" type="Texture" id=32]
-[ext_resource path="res://cards/symbols/symbol_2_hl.png" type="Texture" id=33]
-[ext_resource path="res://cards/backs/back_4_hl.png" type="Texture" id=34]
-[ext_resource path="res://cards/backs/back_3_hl.png" type="Texture" id=35]
-[ext_resource path="res://cards/backs/back_0_hl.png" type="Texture" id=36]
-[ext_resource path="res://cards/backs/back_2_hl.png" type="Texture" id=37]
-[ext_resource path="res://cards/backs/back_1_hl.png" type="Texture" id=38]
+[ext_resource path="res://cards/shadow.png" type="Texture" id=30]
+[ext_resource path="res://cards/highlight.png" type="Texture" id=31]
+[ext_resource path="res://cards/symbols/symbol_4.png" type="Texture" id=32]
+[ext_resource path="res://cards/symbols/symbol_5.png" type="Texture" id=33]
 
-[sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 16, 21.5 )
-
-[sub_resource type="Curve" id=2]
+[sub_resource type="Curve" id=1]
 _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0.1, 0.5, 1 )
+colors = PoolColorArray( 0.815686, 0.815686, 0.313726, 1, 0.533333, 0, 0, 1, 0, 0, 0, 1 )
 
 [sub_resource type="SpriteFrames" id=3]
 animations = [ {
-"frames": [ ExtResource( 4 ), ExtResource( 34 ) ],
-"loop": true,
-"name": "4",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 5 ), ExtResource( 37 ) ],
-"loop": true,
-"name": "2",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 6 ), ExtResource( 38 ) ],
-"loop": true,
-"name": "1",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 7 ), ExtResource( 35 ) ],
-"loop": true,
-"name": "3",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 8 ), ExtResource( 36 ) ],
+"frames": [ ExtResource( 8 ), ExtResource( 6 ), ExtResource( 5 ), ExtResource( 7 ), ExtResource( 4 ) ],
 "loop": true,
 "name": "0",
 "speed": 5.0
@@ -75,118 +51,89 @@ animations = [ {
 
 [sub_resource type="SpriteFrames" id=4]
 animations = [ {
-"frames": [ ExtResource( 13 ) ],
-"loop": true,
-"name": "4",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 23 ) ],
-"loop": true,
-"name": "7",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 14 ) ],
-"loop": true,
-"name": "2",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 15 ) ],
-"loop": true,
-"name": "1",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 18 ) ],
-"loop": true,
-"name": "3",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 1 ) ],
+"frames": [ ExtResource( 1 ), ExtResource( 15 ), ExtResource( 14 ), ExtResource( 18 ), ExtResource( 13 ), ExtResource( 17 ), ExtResource( 16 ), ExtResource( 23 ), ExtResource( 22 ), ExtResource( 24 ) ],
 "loop": true,
 "name": "0",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 22 ) ],
-"loop": true,
-"name": "8",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 24 ) ],
-"loop": true,
-"name": "9",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 16 ) ],
-"loop": true,
-"name": "6",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 17 ) ],
-"loop": true,
-"name": "5",
 "speed": 5.0
 } ]
 
 [sub_resource type="SpriteFrames" id=5]
 animations = [ {
-"frames": [ ExtResource( 19 ), ExtResource( 26 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
-"loop": true,
-"name": "4",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 9 ), ExtResource( 33 ) ],
-"loop": true,
-"name": "2",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 10 ), ExtResource( 31 ) ],
-"loop": true,
-"name": "1",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 11 ), ExtResource( 30 ) ],
-"loop": true,
-"name": "3",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 12 ), ExtResource( 32 ) ],
+"frames": [ ExtResource( 12 ), ExtResource( 10 ), ExtResource( 9 ), ExtResource( 11 ), ExtResource( 32 ), ExtResource( 33 ), ExtResource( 19 ), ExtResource( 26 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
 "loop": true,
 "name": "0",
 "speed": 5.0
 } ]
 
-[sub_resource type="Gradient" id=6]
-offsets = PoolRealArray( 0.0659898, 0.649746, 1 )
-colors = PoolColorArray( 0.815686, 0.815686, 0.313726, 1, 0.533333, 0, 0, 1, 0, 0, 0, 1 )
-
-[sub_resource type="SpriteFrames" id=7]
+[sub_resource type="SpriteFrames" id=6]
 animations = [ {
-"frames": [ ExtResource( 21 ) ],
-"loop": true,
-"name": "2",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 25 ) ],
-"loop": true,
-"name": "1",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 20 ) ],
+"frames": [ ExtResource( 20 ), ExtResource( 25 ), ExtResource( 21 ) ],
 "loop": true,
 "name": "0",
 "speed": 5.0
 } ]
+
+[sub_resource type="Animation" id=7]
+resource_name = "death"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/path = NodePath("ThumpParticles:emitting")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ true ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("ThumpParticles:z_index")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 100 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:z_index")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ -10 ]
+}
+
+[sub_resource type="RectangleShape2D" id=8]
+resource_local_to_scene = true
+extents = Vector2( 15.5, 21 )
 
 [node name="Card" type="Area2D"]
+z_index = -10
 z_as_relative = false
 gravity_vec = Vector2( 0, 0 )
+monitoring = false
+monitorable = false
 script = ExtResource( 2 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 16, 21.5 )
-shape = SubResource( 1 )
+[node name="highlight" type="Sprite" parent="."]
+visible = false
+texture = ExtResource( 31 )
+centered = false
+offset = Vector2( -1, -1 )
 
 [node name="ThumpParticles" type="CPUParticles2D" parent="."]
 position = Vector2( 16, 22 )
+z_index = 100
 z_as_relative = false
 emitting = false
 amount = 30
@@ -206,47 +153,67 @@ initial_velocity_random = 0.5
 angular_velocity = -4.32978e-17
 damping = 100.0
 damping_random = 0.24
-scale_amount_curve = SubResource( 2 )
+scale_amount_curve = SubResource( 1 )
+
+[node name="FlameParticles" type="CPUParticles2D" parent="."]
+position = Vector2( 16, 22 )
+z_index = 5
+z_as_relative = false
+emitting = false
+amount = 60
+lifetime = 0.3
+one_shot = true
+explosiveness = 0.5
+lifetime_randomness = 0.2
+direction = Vector2( 0, 0 )
+spread = 30.0
+gravity = Vector2( 0, 0 )
+initial_velocity = 120.0
+initial_velocity_random = 1.0
+scale_amount = 4.0
+color_ramp = SubResource( 2 )
 
 [node name="card" type="AnimatedSprite" parent="."]
 frames = SubResource( 3 )
-animation = "4"
+animation = "0"
 offset = Vector2( 16, 24 )
 
 [node name="value" type="AnimatedSprite" parent="."]
 frames = SubResource( 4 )
-animation = "9"
+animation = "0"
 offset = Vector2( 5, 5 )
 
 [node name="symbol" type="AnimatedSprite" parent="."]
 frames = SubResource( 5 )
-animation = "1"
-offset = Vector2( 16, 24 )
+animation = "0"
+frame = 1
+offset = Vector2( 16, 26 )
 
-[node name="FlameParticles" type="CPUParticles2D" parent="."]
-position = Vector2( 16, 22 )
-scale = Vector2( 5, 5 )
-emitting = false
-amount = 60
-lifetime = 0.5
-one_shot = true
-preprocess = 0.1
-speed_scale = 2.0
-explosiveness = 0.2
-lifetime_randomness = 0.2
-emission_shape = 2
-emission_rect_extents = Vector2( 2.5, 3.5 )
-direction = Vector2( -1, 0 )
-spread = 10.0
-gravity = Vector2( 0, 0 )
-initial_velocity = 20.0
-initial_velocity_random = 1.0
-color_ramp = SubResource( 6 )
-
-[node name="Clock" type="AnimatedSprite" parent="."]
+[node name="clock" type="AnimatedSprite" parent="."]
 visible = false
-frames = SubResource( 7 )
+frames = SubResource( 6 )
 animation = "0"
 offset = Vector2( 27, 4 )
 
 [node name="Tween" type="Tween" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+playback_speed = 0.5
+anims/death = SubResource( 7 )
+
+[node name="shadow" type="Sprite" parent="."]
+visible = false
+modulate = Color( 0, 0, 0, 1 )
+show_behind_parent = true
+z_as_relative = false
+texture = ExtResource( 30 )
+centered = false
+offset = Vector2( -4, -4 )
+
+[node name="CardCollision" type="CollisionShape2D" parent="."]
+position = Vector2( 16, 21.5 )
+shape = SubResource( 8 )
+[connection signal="input_event" from="." to="." method="_on_Card_input_event"]
+[connection signal="mouse_entered" from="." to="." method="_on_Card_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_Card_mouse_exited"]
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]
