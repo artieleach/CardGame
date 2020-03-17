@@ -9,7 +9,6 @@ signal switch_pos
 signal draw_card
 signal create_card
 signal target_take_turn
-signal update_score
 
 var num_of_powerups = 5
 var arr_size = Vector2(4, 4)
@@ -33,11 +32,13 @@ var debug = true
 
 #helper data for coloring
 var symbol_colors = [
-	Color(0.0, 0.0, 0.533),   # blue
-	Color(0.0, .235, 0.0),    # green
-	Color(.533, .0, .0),      # red
-	Color(.251, .251, .251),  # grey
-	Color(.0, .173, .361),    # teal
+	Color('000088'),   # blue
+	Color('003c00'),   # green
+	Color('880000'),   # red
+	Color('480078'),   # purple
+	Color('480078'),   # also purple
+	Color('404040'),   # grey
+	Color('002c5c'),   # teal
 	]
 
 func _ready():
@@ -50,7 +51,6 @@ func _process(_delta):
 		if not gotten_mouse_pos:
 			mouse_floating_pos = get_local_mouse_position()
 			mouse_floating_pos = Vector2(clamp(mouse_floating_pos.x, 1, card_size.x-2), clamp(mouse_floating_pos.y, 1, card_size.y-2))
-			print(mouse_floating_pos)
 			gotten_mouse_pos = true
 		z_index = 64
 		global_position = get_global_mouse_position() - mouse_floating_pos
@@ -93,7 +93,7 @@ func update_card(called_from := "null"):
 		$Tween.interpolate_property($value, "frame", $value.frame, value, 0.05 * diff)
 		$Tween.start()
 	$symbol.frame = symbol
-	$value.modulate = symbol_colors[clamp(symbol, 0, 4)]
+	$value.modulate = symbol_colors[clamp(symbol, 0, 6)]
 	z_index = table_pos.y
 	$clock.visible = symbol == FACTORY
 
@@ -130,6 +130,18 @@ func take_turn(target):
 			target.value = target.value - holder
 			emit_signal("switch_pos", self, target)
 			return true
+		HOLDER_1:
+			if target.symbol != HOLDER_2:
+				emit_signal("switch_pos", self, target)
+			else:
+				pass
+			return true
+		HOLDER_2:
+			if target.symbol != HOLDER_1:
+				emit_signal("switch_pos", self, target)
+			else:
+				pass
+			return true
 	update_card('turn failed, impossible move')
 	return false
 
@@ -157,19 +169,21 @@ func target_take_turn(living_neighbors):
 				if neighbor[1].symbol in [CIRCLE, VECTOR]:
 					neighbor[1].symbol = [0, 2, 1][neighbor[1].symbol]
 				neighbor[1].update_card('sworlt')
-				emit_signal("create_card", randi() % num_of_powerups + SHUFFLE, 1, table_pos)
+			emit_signal("create_card", cheatsheet[(randi() % num_of_powerups) + SHUFFLE], 1, table_pos)
 		VECTOR:
 			for neighbor in living_neighbors:
 				neighbor[1].value -= living_val
 				neighbor[1].update_card('vector take turn')
+		HOLDER_1:
+			pass
+		HOLDER_2:
+			pass
 
 func death_animation():
 	pickable = false
 	var diff = abs($value.frame - value)
 	$Tween.interpolate_property($value, "frame", $value.frame, value, 0.05 * diff)
 	$Tween.start()
-	if symbol == FACTORY:
-		emit_signal("update_score", 1)
 	yield(get_tree().create_timer(0.05 * diff), "timeout")
 	$AnimationPlayer.play('death')
 

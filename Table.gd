@@ -12,21 +12,23 @@ var init_mouse_pose = Vector2(0, 0)
 var gotten_neighbors = false
 var current_neighbors = []
 
-var debug = false
+var debug = true
 
 var are_ya_sure = false
 
 var turn_counter = 0
 var mouse_on_hand = false
 var cur_turn = 0
-var score = 0
 
 var symbol_colors = [
-	Color(0.0, 0.0, 0.533),   # blue
-	Color(0.0, .235, 0.0),    # green
-	Color(.533, .0, .0),      # red
-	Color(.3, .3, .3),        # grey
-	Color(.0, .173, .361)]    # teal
+	Color('000088'),   # blue
+	Color('003c00'),   # green
+	Color('880000'),   # red
+	Color('480078'),   # purple
+	Color('480078'),   # also purple
+	Color('404040'),   # grey
+	Color('002c5c'),   # teal
+	]
 
 onready var tween = get_node("Tween")
 
@@ -36,7 +38,7 @@ var cheatsheet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 var gamedeck = []
 
 var draw_size = 12
-var deck_string = '11213121111020302010122232221293'.bigrams()
+var deck_string = '10203020101121312111122232221295'.bigrams()
 var deck = []
 var deck_copy = []
 
@@ -65,7 +67,6 @@ func save_game():
 	for card in deck:
 		output[0] += card
 	output.append(str(cur_turn))
-	output.append(str(score))
 	var save_file = File.new()
 	save_file.open("user://savegame.save", File.WRITE)
 	for i in output:
@@ -91,7 +92,6 @@ func load_game():
 	draw_card(len(deck))
 	cur_turn = int(loaded_data[1])
 	turn_counter = int(loaded_data[1])
-	score = int(loaded_data[2])
 
 func _draw():
 	if debug:
@@ -101,15 +101,12 @@ func _draw():
 					draw_rect(Rect2(
 						Vector2((i*draw_size)+38, (j*draw_size)+183), 
 						Vector2(draw_size, draw_size)), 
-						symbol_colors[card_positions[i][j].symbol] * (card_positions[i][j].value / 1.5))
+						symbol_colors[clamp(card_positions[i][j].symbol, 0, 6)] * (card_positions[i][j].value / 1.5))
 				else:
 					draw_rect(Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), Color(0, 0, 0))
 
-func _on_score_update(added_val):
-	score += added_val
-	$score.text = str(score)
-	if score == 0:
-		$score.text = ''
+func _process(_delta):
+	update()
 
 func _on_pickable_clicked(object):
 	save_game()
@@ -167,6 +164,7 @@ func get_in_place(card):
 	tween.start()
 
 func create_card(symbol, value, pos: Vector2):
+	printt('here', symbol, value, pos)
 	pos = Vector2(clamp(int(pos.x), 0, arr_size.x-1), clamp(int(pos.y), 0, arr_size.y-1))
 	if not card_positions[pos.x][pos.y]:
 		var new_card = Card.instance()
@@ -177,7 +175,6 @@ func create_card(symbol, value, pos: Vector2):
 		new_card.position = pos * card_size
 		new_card.turn_created = turn_counter
 		card_positions[pos.x][pos.y] = new_card
-		new_card.connect("update_score", self, "_on_score_update")
 		new_card.connect("picked", self, "_on_pickable_clicked")
 		new_card.connect("dropped", self, "_on_pickable_dropped")
 		new_card.connect("update_board_pos", self, "_on_update_board_pos")
@@ -221,6 +218,12 @@ func calculate_possible_moves():
 							VECTOR:
 								if neighbor[1].value < card.value and neighbor[1].symbol != FACTORY:
 									card.possible_moves.append(neighbor[1].table_pos)
+							HOLDER_1:
+								if neighbor[1].symbol != FACTORY:
+									card.possible_moves.append(neighbor[1].table_pos)
+							HOLDER_2:
+								if neighbor[1].symbol != FACTORY:
+									card.possible_moves.append(neighbor[1].table_pos)
 							SHUFFLE:
 								card.possible_moves.append(neighbor[1].table_pos)
 							BURN:
@@ -230,7 +233,7 @@ func calculate_possible_moves():
 								if neighbor[1].symbol == FACTORY:
 									card.possible_moves.append(neighbor[1].table_pos)
 							FLOOD:
-								if neighbor[1].symbol == SPIRAL:	
+								if neighbor[1].symbol == SPIRAL:
 									card.possible_moves.append(neighbor[1].table_pos)
 							MULLIGAN:
 								card.possible_moves.append(neighbor[1].table_pos)
@@ -255,7 +258,6 @@ func _on_switch_pos(card_a, card_b):
 	card_b.get_in_place()
 
 func draw_card(num_to_draw, delay:= 0):
-	print('called', num_to_draw)
 	var total_to_draw = num_to_draw + delay
 	var skipped = 0
 	for x in range(arr_size.x):
@@ -366,8 +368,6 @@ func _on_deck_pressed():
 						card.update_card()
 			are_ya_sure = false
 			deck = []
-			score = 0
-			_on_score_update(0)
 			_on_deck_pressed()
 
 func _on_tween_completed(_object, key):
