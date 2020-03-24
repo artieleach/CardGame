@@ -36,9 +36,9 @@ gdscript/warnings/unused_variable=false
 
 [display]
 
-window/size/width=144
+window/size/width=164
 window/size/height=256
-window/size/test_width=576
+window/size/test_width=656
 window/size/test_height=1024
 window/vsync/use_vsync=false
 window/handheld/orientation="portrait"

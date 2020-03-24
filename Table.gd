@@ -7,7 +7,7 @@ enum {SPIRAL, CIRCLE, VECTOR, HOLDER_1, HOLDER_2, FACTORY, SHUFFLE, BURN, CAPITA
 var held_object = null
 
 var card_positions = []
-var arr_size = Vector2(4, 4)
+var arr_size = Vector2(5, 5)
 var init_mouse_pose = Vector2(0, 0)
 var gotten_neighbors = false
 var current_neighbors = []
@@ -38,7 +38,7 @@ var cheatsheet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 var gamedeck = []
 
 var draw_size = 12
-var deck_string = '10203020101121312111122232221295'.bigrams()
+var deck_string = '02020303041212131314121213131422222323242222232324565656'.bigrams()
 var deck = []
 var deck_copy = []
 
@@ -99,14 +99,15 @@ func _draw():
 			for j in range(len(card_positions[i])):
 				if card_positions[i][j]:
 					draw_rect(Rect2(
-						Vector2((i*draw_size)+38, (j*draw_size)+183), 
+						Vector2((i*draw_size)+200, (j*draw_size)+183), 
 						Vector2(draw_size, draw_size)), 
 						symbol_colors[clamp(card_positions[i][j].symbol, 0, 6)] * (card_positions[i][j].value / 1.5))
 				else:
-					draw_rect(Rect2(Vector2((i*draw_size)+38, (j*draw_size)+183), Vector2(draw_size, draw_size)), Color(0, 0, 0))
+					draw_rect(Rect2(Vector2((i*draw_size)+200, (j*draw_size)+183), Vector2(draw_size, draw_size)), Color(0, 0, 0))
 
 func _process(_delta):
-	update()
+	if debug:
+		update()
 
 func _on_pickable_clicked(object):
 	save_game()
@@ -154,8 +155,8 @@ func _on_pickable_dropped(object):
 			for row in card_positions:
 				for card in row:
 					if card and card.symbol == FACTORY:
-						card.get_node('clock').frame = (turn_counter+card.turn_created) % 3
-						if turn_counter > (card.turn_created + 1) and (turn_counter + card.turn_created) % 3 == 0:
+						card.get_node("card/clock").frame = (turn_counter+card.turn_created) % 3
+						if turn_counter > (card.turn_created + 1) and (turn_counter + card.turn_created) % 4 == 0:
 							var neighborhood = get_neighbors(card)
 							card.factory_take_turn(neighborhood[0], neighborhood[1], turn_counter - 1)
 
@@ -164,7 +165,6 @@ func get_in_place(card):
 	tween.start()
 
 func create_card(symbol, value, pos: Vector2):
-	printt('here', symbol, value, pos)
 	pos = Vector2(clamp(int(pos.x), 0, arr_size.x-1), clamp(int(pos.y), 0, arr_size.y-1))
 	if not card_positions[pos.x][pos.y]:
 		var new_card = Card.instance()
@@ -179,7 +179,7 @@ func create_card(symbol, value, pos: Vector2):
 		new_card.connect("dropped", self, "_on_pickable_dropped")
 		new_card.connect("update_board_pos", self, "_on_update_board_pos")
 		new_card.connect("switch_pos", self, "_on_switch_pos")
-		new_card.connect("draw_card", self, "draw_card")
+		new_card.connect("draw_card_from_card", self, "draw_card")
 		new_card.connect("create_card", self, "create_card")
 		new_card.connect("target_take_turn", self, "target_take_turn")
 		add_child(new_card)
@@ -267,8 +267,8 @@ func draw_card(num_to_draw, delay:= 0):
 					if deck:
 						var new_card = null
 						num_to_draw -= 1
-						if int(deck[0][0]) > 0:
-							new_card = create_card(deck[0][1], int(deck[0][0]), Vector2(x, y))
+						if int(deck[0][1]) > 0:
+							new_card = create_card(deck[0][0], int(deck[0][1]), Vector2(x, y))
 							new_card.position = Vector2(0, 183)
 							tween.interpolate_property(new_card, "position", Vector2(0, 183), new_card.table_pos * card_size, 0.3, Tween.TRANS_EXPO, Tween.EASE_OUT, 0.1 * ((total_to_draw - num_to_draw) - skipped))
 							tween.start()
@@ -323,6 +323,7 @@ func power_up_take_turn(power_up_card, target):
 						for fac_neighbor in factory_neighbors[1]:
 							if fac_neighbor[1].symbol == FACTORY:
 								fac_neighbor[1].value -= power_up_value
+								fac_neighbor[1].update_card()
 			return true
 		FLOOD:
 			for row in card_positions:
@@ -342,6 +343,8 @@ func power_up_take_turn(power_up_card, target):
 			tween.start()
 			tween.interpolate_property(target, "value", target.value, 0, 0.3, Tween.TRANS_LINEAR, Tween.EASE_IN)
 			tween.start()
+			yield(tween, "tween_completed")
+			target.update_card()
 			return true
 	return false
 

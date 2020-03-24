@@ -15,13 +15,11 @@ outline_color = Color( 0, 0, 0, 1 )
 font_data = SubResource( 1 )
 
 [node name="Table" type="ColorRect"]
-anchor_right = 0.889
-anchor_bottom = 0.699
-margin_right = -0.0160065
-margin_bottom = -1.944
-rect_min_size = Vector2( 128, 177 )
+margin_right = 160.0
+margin_bottom = 220.0
+rect_min_size = Vector2( 160, 220 )
 mouse_filter = 2
-color = Color( 0.627451, 0.517647, 0.266667, 1 )
+color = Color( 0.627451, 0.517647, 0.266667, 0.278431 )
 script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false

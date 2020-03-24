@@ -34,14 +34,18 @@
 [ext_resource path="res://cards/symbols/symbol_4.png" type="Texture" id=32]
 [ext_resource path="res://cards/symbols/symbol_5.png" type="Texture" id=33]
 
-[sub_resource type="Curve" id=1]
+[sub_resource type="RectangleShape2D" id=1]
+resource_local_to_scene = true
+extents = Vector2( 15.5, 21 )
+
+[sub_resource type="Curve" id=2]
 _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="Gradient" id=2]
+[sub_resource type="Gradient" id=3]
 offsets = PoolRealArray( 0.1, 0.5, 1 )
 colors = PoolColorArray( 0.815686, 0.815686, 0.313726, 1, 0.533333, 0, 0, 1, 0, 0, 0, 1 )
 
-[sub_resource type="SpriteFrames" id=3]
+[sub_resource type="SpriteFrames" id=4]
 animations = [ {
 "frames": [ ExtResource( 8 ), ExtResource( 6 ), ExtResource( 5 ), ExtResource( 7 ), ExtResource( 4 ) ],
 "loop": true,
@@ -49,7 +53,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=4]
+[sub_resource type="SpriteFrames" id=5]
 animations = [ {
 "frames": [ ExtResource( 1 ), ExtResource( 15 ), ExtResource( 14 ), ExtResource( 18 ), ExtResource( 13 ), ExtResource( 17 ), ExtResource( 16 ), ExtResource( 23 ), ExtResource( 22 ), ExtResource( 24 ) ],
 "loop": true,
@@ -57,7 +61,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=5]
+[sub_resource type="SpriteFrames" id=6]
 animations = [ {
 "frames": [ ExtResource( 12 ), ExtResource( 10 ), ExtResource( 9 ), ExtResource( 32 ), ExtResource( 33 ), ExtResource( 11 ), ExtResource( 19 ), ExtResource( 26 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
 "loop": true,
@@ -65,7 +69,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="SpriteFrames" id=6]
+[sub_resource type="SpriteFrames" id=7]
 animations = [ {
 "frames": [ ExtResource( 20 ), ExtResource( 25 ), ExtResource( 21 ) ],
 "loop": true,
@@ -73,8 +77,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="Animation" id=7]
-resource_name = "death"
+[sub_resource type="Animation" id=8]
 length = 0.25
 tracks/0/type = "value"
 tracks/0/path = NodePath("ThumpParticles:emitting")
@@ -113,10 +116,6 @@ tracks/2/keys = {
 "values": [ -10 ]
 }
 
-[sub_resource type="RectangleShape2D" id=8]
-resource_local_to_scene = true
-extents = Vector2( 15.5, 21 )
-
 [node name="Card" type="Area2D"]
 z_index = -10
 z_as_relative = false
@@ -125,8 +124,22 @@ monitoring = false
 monitorable = false
 script = ExtResource( 2 )
 
+[node name="shadow" type="Sprite" parent="."]
+modulate = Color( 0, 0, 0, 1 )
+show_behind_parent = true
+z_as_relative = false
+texture = ExtResource( 30 )
+centered = false
+offset = Vector2( -4, -4 )
+
+[node name="CardCollision" type="CollisionShape2D" parent="."]
+position = Vector2( 16, 21.5 )
+shape = SubResource( 1 )
+
 [node name="highlight" type="Sprite" parent="."]
 visible = false
+z_index = 10
+z_as_relative = false
 texture = ExtResource( 31 )
 centered = false
 offset = Vector2( -1, -1 )
@@ -153,7 +166,7 @@ initial_velocity_random = 0.5
 angular_velocity = -4.32978e-17
 damping = 100.0
 damping_random = 0.24
-scale_amount_curve = SubResource( 1 )
+scale_amount_curve = SubResource( 2 )
 
 [node name="FlameParticles" type="CPUParticles2D" parent="."]
 position = Vector2( 16, 22 )
@@ -171,27 +184,27 @@ gravity = Vector2( 0, 0 )
 initial_velocity = 120.0
 initial_velocity_random = 1.0
 scale_amount = 4.0
-color_ramp = SubResource( 2 )
+color_ramp = SubResource( 3 )
 
 [node name="card" type="AnimatedSprite" parent="."]
-frames = SubResource( 3 )
+frames = SubResource( 4 )
 animation = "0"
 offset = Vector2( 16, 24 )
 
-[node name="value" type="AnimatedSprite" parent="."]
-frames = SubResource( 4 )
+[node name="value" type="AnimatedSprite" parent="card"]
+frames = SubResource( 5 )
 animation = "0"
 offset = Vector2( 5, 5 )
 
-[node name="symbol" type="AnimatedSprite" parent="."]
-frames = SubResource( 5 )
+[node name="symbol" type="AnimatedSprite" parent="card"]
+frames = SubResource( 6 )
 animation = "0"
 frame = 1
 offset = Vector2( 16, 26 )
 
-[node name="clock" type="AnimatedSprite" parent="."]
+[node name="clock" type="AnimatedSprite" parent="card"]
 visible = false
-frames = SubResource( 6 )
+frames = SubResource( 7 )
 animation = "0"
 offset = Vector2( 27, 4 )
 
@@ -199,21 +212,9 @@ offset = Vector2( 27, 4 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 playback_speed = 0.5
-anims/death = SubResource( 7 )
-
-[node name="shadow" type="Sprite" parent="."]
-visible = false
-modulate = Color( 0, 0, 0, 1 )
-show_behind_parent = true
-z_as_relative = false
-texture = ExtResource( 30 )
-centered = false
-offset = Vector2( -4, -4 )
-
-[node name="CardCollision" type="CollisionShape2D" parent="."]
-position = Vector2( 16, 21.5 )
-shape = SubResource( 8 )
+anims/death = SubResource( 8 )
 [connection signal="input_event" from="." to="." method="_on_Card_input_event"]
 [connection signal="mouse_entered" from="." to="." method="_on_Card_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_Card_mouse_exited"]
+[connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
 [connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]

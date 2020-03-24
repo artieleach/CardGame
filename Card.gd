@@ -6,12 +6,12 @@ signal picked
 signal dropped
 signal update_board_pos
 signal switch_pos
-signal draw_card
+signal draw_card_from_card
 signal create_card
 signal target_take_turn
 
 var num_of_powerups = 5
-var arr_size = Vector2(4, 4)
+var arr_size = Vector2(5, 5)
 var card_size = Vector2(32, 43)
 
 # card data
@@ -59,7 +59,7 @@ func ps():
 	return 'Self: %s\nSymbol: %d\tValue: %d\tGrid: %s\tZ: %d' % [self, symbol, value, table_pos, z_index]
 
 func lp():
-	return '%s%s' % [str(clamp(value, 0, 9)), cheatsheet[symbol]]
+	return '%s%s' % [cheatsheet[symbol], str(clamp(value, 0, 9))]
 
 
 func pickup():
@@ -71,15 +71,13 @@ func pickup():
 		$Tween.start()
 		$highlight.visible = false
 		last_pos = table_pos
-		yield(get_node("Tween"), "tween_completed")
-		held = true
 
 func drop():
 	get_in_place()
 	$ThumpParticles.z_index = 0
 	$ThumpParticles.emitting = true
-	$shadow.visible = false
-	$highlight.visible = false
+	$shadow.global_position = global_position
+	$highlight.visible = true
 	held = false
 	update_card('drop')
 
@@ -88,14 +86,14 @@ func update_card(called_from := "null"):
 		printt(self, lp(), called_from)
 	emit_signal('update_board_pos', self)
 	value = clamp(value, 0, 9)
-	if $value.frame != value:
-		var diff = abs($value.frame - value)
-		$Tween.interpolate_property($value, "frame", $value.frame, value, 0.05 * diff)
+	if get_node("card/value").frame != value:
+		var diff = abs(get_node("card/value").frame - value)
+		$Tween.interpolate_property(get_node("card/value"), "frame", get_node("card/value").frame, value, 0.05 * diff)
 		$Tween.start()
-	$symbol.frame = symbol
-	$value.modulate = symbol_colors[clamp(symbol, 0, 6)]
+	get_node("card/symbol").frame = symbol
+	get_node("card/value").modulate = symbol_colors[clamp(symbol, 0, 6)]
 	z_index = table_pos.y
-	$clock.visible = symbol == FACTORY
+	get_node("card/clock").visible = symbol == FACTORY
 
 func get_in_place():
 	$Tween.interpolate_property(self, "position", position, table_pos * card_size, 0.2, Tween.TRANS_EXPO, Tween.EASE_OUT)
@@ -151,11 +149,13 @@ func factory_take_turn(neighbors, living_neighbors, turn_counter):
 			emit_signal("create_card", symbol, 1, neighbor[0])
 			return
 	for neighbor in living_neighbors:
-		if neighbor[1].symbol != symbol and neighbor[1].turn_created != turn_counter:
-			neighbor[1].value -= 1
-		else:
-			value += 1
+		if neighbor[1].turn_created != turn_counter:
+			if neighbor[1].symbol != symbol:
+				neighbor[1].value -= 1
+			else:
+				value += 1
 		neighbor[1].update_card('factory take turn')
+	update_card()
 
 func target_take_turn(living_neighbors):
 	var living_val = value
@@ -163,7 +163,8 @@ func target_take_turn(living_neighbors):
 	emit_signal('update_board_pos', self)
 	match symbol:
 		CIRCLE:
-			emit_signal("draw_card", living_val)
+			print(living_val)
+			emit_signal("draw_card_from_card", living_val)
 		SPIRAL:
 			for neighbor in living_neighbors:
 				if neighbor[1].symbol in [CIRCLE, VECTOR]:
@@ -181,11 +182,11 @@ func target_take_turn(living_neighbors):
 
 func death_animation():
 	pickable = false
-	var diff = abs($value.frame - value)
-	$Tween.interpolate_property($value, "frame", $value.frame, value, 0.05 * diff)
+	var diff = abs(get_node("card/value").frame - value)
+	$Tween.interpolate_property(get_node("card/value"), "frame", get_node("card/value").frame, value, 0.05 * diff)
 	$Tween.start()
-	yield(get_tree().create_timer(0.05 * diff), "timeout")
 	$AnimationPlayer.play('death')
+	$shadow.visible = false
 
 func _on_AnimationPlayer_animation_finished(anim_name):
 	if anim_name == "death":
@@ -221,3 +222,8 @@ func _on_Card_input_event(_viewport, event, _shape_idx):
 				if value > 0:
 					value -= 1
 
+
+
+func _on_Tween_tween_completed(object, key):
+	if key == ':global_position' and object == self:
+		held = true
